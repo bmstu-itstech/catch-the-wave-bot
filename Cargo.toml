@@ -4,3 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.40"
+log = "0.4.27"
+teloxide = { version = "0.14.0", features = ["macros"] }
+thiserror = "1.0.69"
+async-trait = "0.1.88"
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.44.1", features = ["rt", "rt-multi-thread", "macros"] }
+dotenv = "0.15.0"
+pretty_env_logger = "0.5.0"
