@@ -1,24 +1,33 @@
 use chrono::{DateTime, Utc};
+use crate::domain::models::{CurrentMeeting, NextMeeting};
 use crate::domain::models::profile::Profile;
 
 #[derive(Debug)]
 #[derive(Clone)]
 #[derive(PartialEq)]
 pub struct User {
-    pub telegram_id: i64,
-    pub username: Option<String>,   // Аккаунт в ТГ может иметь скрытый никнейм (отсутствующий)
+    pub id: i64,
+    pub username: String,
     pub created_at: DateTime<Utc>,
-    
+
     pub profile: Option<Profile>,
+    pub current_meeting: Option<CurrentMeeting>,
+    pub next_meeting: Option<NextMeeting>,
 }
 
 impl User {
-    pub fn new(telegram_id: i64, username: Option<String>) -> Self {
+    pub fn new(telegram_id: i64, username: String) -> Self {
         Self {
-            telegram_id,
+            id: telegram_id,
             username,
             created_at: Utc::now(),
             profile: None,
+            current_meeting: None,
+            next_meeting: None,
         }
+    }
+    
+    pub fn set_profile(&mut self, profile: Profile) {
+        self.profile = Some(profile);
     }
 }

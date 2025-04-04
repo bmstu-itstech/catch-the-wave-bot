@@ -5,6 +5,10 @@ use serde::{Serialize, Deserialize};
 pub enum CwDialogueState {
     #[default]
     Idle,
+    
     AwaitingFullName,
     AwaitingGroupName { full_name: String },
+
+    Menu,
+    AwaitingAcceptNextMeeting,
 }

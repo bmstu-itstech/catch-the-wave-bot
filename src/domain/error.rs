@@ -3,20 +3,12 @@ pub enum DomainError {
     #[error("already exists")]
     AlreadyExists(String),
     
-    #[error("not found")]
-    NotFound(String),
+    #[error("invalid input")]
+    InvalidInput(String),
     
-    #[error("internal storage error")]
-    StorageError(#[from] Box<dyn std::error::Error + Send + Sync>),
+    #[error("invalid status change")]
+    InvalidStatusChange(String),
+    
+    #[error("no quest found")]
+    NoQuestFound,
 }
-
-/*
-impl DomainError {
-    pub fn storage<E>(err: E) -> Self
-    where
-        E: std::error::Error + Send + Sync + 'static,
-    {
-        Self::StorageError(Box::new(err))
-    }
-}
-*/
