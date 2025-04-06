@@ -16,8 +16,8 @@ impl CompleteRegistrationUseCase {
     pub async fn execute(
         &self, 
         user_id: i64,
-        full_name: String,
-        group_name: String,
+        full_name: &str,
+        group_name: &str,
     ) -> Result<models::User, CompleteRegistrationError> {
         let profile = models::Profile::new(full_name, group_name);
         let mut user = self.user_repo.user(user_id).await?

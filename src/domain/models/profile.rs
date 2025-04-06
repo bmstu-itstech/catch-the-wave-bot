@@ -7,7 +7,10 @@ pub struct Profile {
 }
 
 impl Profile {
-    pub fn new(full_name: String, group: String) -> Profile {
-        Profile { full_name, group_name: group }
+    pub fn new(full_name: impl Into<String>, group_name: impl Into<String>) -> Profile {
+        Profile { 
+            full_name: full_name.into(), 
+            group_name: group_name.into(),
+        }
     }
 }

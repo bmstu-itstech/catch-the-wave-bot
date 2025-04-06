@@ -16,7 +16,7 @@ impl StartRegistrationUseCase {
     pub async fn execute(
         &self, 
         user_id: i64, 
-        username: String
+        username: &str,
     ) -> Result<models::User, StartRegistrationError> {
          if self.user_repo.user(user_id).await?.is_some() { 
              return Err(StartRegistrationError::UserAlreadyRegistered(user_id));

@@ -21,4 +21,9 @@ impl UserRepository for InMemoryUserRepository {
         let guard = self.m.read().unwrap();
         Ok(guard.get(&id).cloned())
     }
+
+    async fn all(&self) -> Result<Vec<User>, StdError> {
+        let guard = self.m.read().unwrap();
+        Ok(guard.values().cloned().collect())
+    }
 }

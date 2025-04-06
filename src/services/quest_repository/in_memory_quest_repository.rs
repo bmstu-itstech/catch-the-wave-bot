@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
+use chrono::{DateTime, Utc};
 
 use crate::domain::interfaces::{QuestRepository, StdError};
 use crate::domain::models::Quest;
@@ -11,9 +12,11 @@ pub struct InMemoryQuestRepository {
 
 #[async_trait::async_trait]
 impl QuestRepository for InMemoryQuestRepository {
-    async fn save(&self, quest: Quest) -> Result<Quest, StdError> {
+    async fn create(&self, text: &str, start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Quest, StdError> {
         let mut guard = self.m.write().unwrap();
-        guard.insert(quest.id, quest.clone());
+        let id = guard.len() as i64;
+        let quest = Quest::new(id, text, start, end);
+        guard.insert(id, quest.clone());
         Ok(quest)
     }
 

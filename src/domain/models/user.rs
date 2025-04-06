@@ -16,17 +16,17 @@ pub struct User {
 }
 
 impl User {
-    pub fn new(telegram_id: i64, username: String) -> Self {
+    pub fn new(telegram_id: i64, username: impl Into<String>) -> Self {
         Self {
             id: telegram_id,
-            username,
+            username: username.into(),
             created_at: Utc::now(),
             profile: None,
             current_meeting: None,
             next_meeting: None,
         }
     }
-    
+
     pub fn set_profile(&mut self, profile: Profile) {
         self.profile = Some(profile);
     }

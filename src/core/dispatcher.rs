@@ -4,9 +4,10 @@ use teloxide::dispatching::{dialogue, DefaultKey, Dispatcher, UpdateHandler};
 use teloxide::prelude::*;
 
 use crate::core::fsm::CwDialogueState;
-use crate::domain::use_cases::{AcceptMeetingUseCase, CompleteRegistrationUseCase, StartRegistrationUseCase, RejectMeetingUseCase, GetNextMeetingUseCase, GetMenuStateUseCase, MenuCategory, GetCurrentMeetingUseCase};
+use crate::domain::use_cases::{AcceptMeetingUseCase, CompleteRegistrationUseCase, StartRegistrationUseCase, RejectMeetingUseCase, GetNextMeetingUseCase, GetMenuStateUseCase, MenuCategory, GetCurrentMeetingUseCase, CheckAdminUseCase, GetAllUsersUseCase};
 use crate::presentation::handlers::commands::Command;
-use crate::presentation::handlers::{current_meeting, next_meeting, registration};
+use crate::presentation::handlers::{admin, current_meeting, next_meeting, registration};
+use crate::presentation::handlers::admin::AdminMenuCallback;
 use crate::presentation::handlers::menu::MenuCallback;
 use crate::presentation::handlers::next_meeting::NextMeeting;
 use crate::presentation::handlers::utils::CwBotError;
@@ -22,7 +23,9 @@ impl CwDispatcher {
         reject_meeting_use_case: RejectMeetingUseCase,
         get_next_meeting_use_case: GetNextMeetingUseCase,
         get_menu_state_use_case: GetMenuStateUseCase,
-        get_current_meeting_use_case: GetCurrentMeetingUseCase
+        get_current_meeting_use_case: GetCurrentMeetingUseCase,
+        check_admin_use_case: CheckAdminUseCase,
+        get_all_users_use_case: GetAllUsersUseCase,
     ) -> Dispatcher<Bot, CwBotError, DefaultKey> {
         Dispatcher::builder(bot, Self::schema())
             .dependencies(dptree::deps![
@@ -33,7 +36,9 @@ impl CwDispatcher {
                 reject_meeting_use_case,
                 get_menu_state_use_case,
                 get_next_meeting_use_case,
-                get_current_meeting_use_case
+                get_current_meeting_use_case,
+                check_admin_use_case,
+                get_all_users_use_case
             ])
             .default_handler(|upd| async move {
                 log::warn!("Unhandled update: {:?}", upd);
@@ -46,10 +51,8 @@ impl CwDispatcher {
         use dptree::case;
         
         let command_handler = filter_command::<Command, _>()
-            //.branch(case![Command::Cancel].endpoint(registration::handle_cancel))
             .branch(case![Command::Start].endpoint(registration::handle_start_command))
-            //.branch(case![Command::NextMeeting].endpoint(next_meeting::handle_next_meeting_command))
-            //.branch(case![Command::ReRegister].endpoint(registration::handle_re_register_command));
+            .branch(case![Command::Admin].endpoint(admin::handle_admin_command))
         ;
 
         let message_handler = Update::filter_message()
@@ -74,14 +77,25 @@ impl CwDispatcher {
         ;
 
         let callback_handler = Update::filter_callback_query()
-            .filter_map(extract_action)
             .branch(
-                case![MenuCallback::NextMeeting]
-                    .endpoint(next_meeting::handle_next_meeting_callback)
+                dptree::entry()
+                    .filter_map(extract_menu_callback)
+                    .branch(
+                        case![MenuCallback::NextMeeting]
+                            .endpoint(next_meeting::handle_next_meeting_callback)
+                    )
+                    .branch(
+                        case![MenuCallback::CurrentMeeting]
+                            .endpoint(current_meeting::handle_current_meeting_callback)
+                    )
             )
             .branch(
-                case![MenuCallback::CurrentMeeting]
-                    .endpoint(current_meeting::handle_current_meeting_callback)
+                dptree::entry()
+                    .filter_map(extract_admin_menu_callback)
+                    .branch(
+                        case![AdminMenuCallback::Users]
+                            .endpoint(admin::handle_admin_menu_users_callback)
+                    )
             )
         ;
         
@@ -96,6 +110,10 @@ impl CwDispatcher {
     }
 }
 
-fn extract_action(q: CallbackQuery) -> Option<MenuCallback> {
+fn extract_menu_callback(q: CallbackQuery) -> Option<MenuCallback> {
     q.data.and_then(|str| MenuCallback::try_from(str).ok())
+}
+
+fn extract_admin_menu_callback(q: CallbackQuery) -> Option<AdminMenuCallback> {
+    q.data.and_then(|str| AdminMenuCallback::try_from(str).ok())
 }

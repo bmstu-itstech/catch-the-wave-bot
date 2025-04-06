@@ -39,35 +39,6 @@ pub async fn handle_next_meeting_callback(
     Ok(())
 }
 
-
-pub async fn handle_next_meeting_command(
-    bot: Bot,
-    msg: Message,
-    dialogue: CwDialogue,
-    use_case: GetNextMeetingUseCase,
-) -> CwHandlerResult {
-    let next_meeting = match use_case.execute(msg.chat.id.0).await {
-        Ok(next_meeting) => next_meeting,
-        Err(err) => return match err {
-            GetNextMeetingError::UserNotFound(_) => Err(CwBotError::Other(err.to_string())),
-            GetNextMeetingError::ServiceError(e) => Err(e.into()),
-        }
-    };
-    
-    if next_meeting.is_none() {
-        bot.send_message(msg.chat.id, T.meeting.no_next_meeting).await?;
-        return Ok(());
-    }
-    
-    bot.send_message(msg.chat.id, T.meeting.accept_next_meeting)
-        .reply_markup(next_meeting_keyboard())
-        .await?;
-
-    dialogue.update(CwDialogueState::AwaitingAcceptNextMeeting).await?;
-
-    Ok(())
-}
-
 pub async fn handle_next_meeting_accept(
     bot: Bot,
     msg: Message,
@@ -81,6 +52,7 @@ pub async fn handle_next_meeting_accept(
 
     bot.send_message(msg.chat.id, T.meeting.after_accept).await?;
     dialogue.update(CwDialogueState::Idle).await?;
+    log::info!("user {} accepted the next meeting", msg.chat.username().unwrap());
     
     send_menu(bot, msg, get_menu_state_use_case).await
 }
@@ -98,6 +70,7 @@ pub async fn handle_next_meeting_reject(
 
     bot.send_message(msg.chat.id, T.meeting.after_reject).await?;
     dialogue.update(CwDialogueState::Idle).await?;
+    log::info!("user {} rejected the next meeting", msg.chat.username().unwrap());
     
     send_menu(bot, msg, get_menu_state_use_case).await
 }

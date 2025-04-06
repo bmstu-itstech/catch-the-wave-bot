@@ -32,10 +32,30 @@ pub struct Menu {
     pub rules_button: StaticText,
 }
 
+pub struct AdminMenu {
+    pub text: StaticText,
+    pub users_button: StaticText,
+    pub meetings_button: StaticText,
+    pub users_query_header: StaticText,
+}
+
+impl AdminMenu {
+    pub fn users_query_text(&self, usernames: &[&str]) -> String {
+        usernames
+            .iter()
+            .fold(
+                String::from(self.users_query_header), 
+                |prev, cur| prev + "@" + cur + "\n"
+            )
+    }
+}
+
+
 pub struct Texts {
     pub registration: RegistrationTexts,
     pub meeting: MeetingTexts,
     pub menu: Menu,
+    pub admin_menu: AdminMenu
 }
 
 pub const T: Texts = Texts {
@@ -60,5 +80,11 @@ pub const T: Texts = Texts {
         current_meeting_button: "Актуальная встреча 💌",
         profile_button: "Профиль 🧐",
         rules_button: "Правила ❓",
+    },
+    admin_menu: AdminMenu {
+        text: "Меню администратора",
+        users_button: "Пользователи",
+        meetings_button: "Встречи",
+        users_query_header: "Все пользователи бота",
     }
 };

@@ -17,7 +17,7 @@ pub async fn handle_start_command(
     start_registration_use_case: StartRegistrationUseCase,
     get_menu_state_use_case: GetMenuStateUseCase,
 ) -> CwHandlerResult {
-    let username = msg.chat.username().map(|u| u.to_string())
+    let username = msg.chat.username()
         .ok_or(CwBotError::Other(format!("no username for user id {}", msg.chat.id.0)))?;
     
     if let Err(err) = start_registration_use_case.execute(msg.chat.id.0, username).await {
@@ -45,7 +45,7 @@ pub async fn handle_re_register_command(
     dialogue: CwDialogue,
     use_case: StartRegistrationUseCase,
 ) -> CwHandlerResult {
-    let username = msg.chat.username().map(|u| u.to_string())
+    let username = msg.chat.username()
         .ok_or(CwBotError::Other(format!("no username for user id {}", msg.chat.id.0)))?;
     
     if let Err(err) = use_case.execute(msg.chat.id.0, username).await {
@@ -96,8 +96,8 @@ pub async fn receive_group_name(
 
     let user = match complete_registration_use_case.execute(
         msg.chat.id.0,
-        full_name,
-        group_name,
+        full_name.as_str(),
+        group_name.as_str(),
     ).await {
         Ok(user) => user,
         Err(err) => return match err {

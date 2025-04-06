@@ -1,10 +1,11 @@
+use teloxide::dispatching::dialogue::GetChatId;
 use teloxide::prelude::*;
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardMarkup};
 
 use crate::domain::use_cases::{GetMenuStateError, GetMenuStateUseCase, MenuCategory, MenuState};
-use crate::presentation::handlers::utils::{CwBotError, CwDialogue, CwHandlerResult};
 
 use super::texts::T;
+use super::utils::{CwBotError, CwHandlerResult};
 
 
 pub async fn send_menu(
@@ -15,12 +16,12 @@ pub async fn send_menu(
     send_menu_in_chat(bot, msg.chat.id, use_case).await
 }
 
-pub async fn send_menu_dialogue(
+pub async fn send_menu_callback(
     bot: Bot,
-    dialogue: CwDialogue,
+    q: CallbackQuery,
     use_case: GetMenuStateUseCase,
 ) -> CwHandlerResult {
-    send_menu_in_chat(bot, dialogue.chat_id(), use_case).await
+    send_menu_in_chat(bot, q.chat_id().unwrap(), use_case).await
 }
 
 async fn send_menu_in_chat(

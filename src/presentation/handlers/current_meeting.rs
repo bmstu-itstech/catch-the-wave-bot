@@ -1,7 +1,7 @@
 use teloxide::prelude::*;
 
 use crate::domain::use_cases::{GetCurrentMeetingUseCase, GetCurrentMeetingError, GetMenuStateUseCase};
-use crate::presentation::handlers::menu::send_menu_dialogue;
+use crate::presentation::handlers::menu::send_menu_callback;
 use super::texts::T;
 use super::utils::{CwBotError, CwDialogue, CwHandlerResult};
 
@@ -13,7 +13,7 @@ pub async fn handle_current_meeting_callback(
     get_current_meeting_use_case: GetCurrentMeetingUseCase,
     get_menu_state_use_case: GetMenuStateUseCase,
 ) -> CwHandlerResult {
-    bot.answer_callback_query(q.id).await?;
+    bot.answer_callback_query(&q.id).await?;
 
     let current_meeting = match get_current_meeting_use_case.execute(dialogue.chat_id().0).await {
         Ok(current_meeting) => current_meeting,
@@ -28,5 +28,5 @@ pub async fn handle_current_meeting_callback(
         &current_meeting.partner_username,
     )).await?;
 
-    send_menu_dialogue(bot, dialogue, get_menu_state_use_case).await
+    send_menu_callback(bot, q, get_menu_state_use_case).await
 }
