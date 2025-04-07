@@ -4,7 +4,7 @@ use teloxide::dispatching::{dialogue, DefaultKey, Dispatcher, UpdateHandler};
 use teloxide::prelude::*;
 
 use crate::core::fsm::CwDialogueState;
-use crate::domain::use_cases::{AcceptMeetingUseCase, CompleteRegistrationUseCase, StartRegistrationUseCase, RejectMeetingUseCase, GetNextMeetingUseCase, GetMenuStateUseCase, MenuCategory, GetCurrentMeetingUseCase, CheckAdminUseCase, GetAllUsersUseCase};
+use crate::domain::use_cases::{AcceptMeetingUseCase, CompleteRegistrationUseCase, StartRegistrationUseCase, RejectMeetingUseCase, GetNextMeetingUseCase, GetMenuStateUseCase, GetCurrentMeetingUseCase, CheckAdminUseCase, GetAllUsersUseCase, FindUserByUsernameUseCase};
 use crate::presentation::handlers::commands::Command;
 use crate::presentation::handlers::{admin, current_meeting, next_meeting, registration};
 use crate::presentation::handlers::admin::AdminMenuCallback;
@@ -26,6 +26,7 @@ impl CwDispatcher {
         get_current_meeting_use_case: GetCurrentMeetingUseCase,
         check_admin_use_case: CheckAdminUseCase,
         get_all_users_use_case: GetAllUsersUseCase,
+        find_user_by_username_use_case: FindUserByUsernameUseCase,
     ) -> Dispatcher<Bot, CwBotError, DefaultKey> {
         Dispatcher::builder(bot, Self::schema())
             .dependencies(dptree::deps![
@@ -38,7 +39,8 @@ impl CwDispatcher {
                 get_next_meeting_use_case,
                 get_current_meeting_use_case,
                 check_admin_use_case,
-                get_all_users_use_case
+                get_all_users_use_case,
+                find_user_by_username_use_case
             ])
             .default_handler(|upd| async move {
                 log::warn!("Unhandled update: {:?}", upd);
@@ -97,6 +99,14 @@ impl CwDispatcher {
                             .endpoint(admin::handle_admin_menu_users_callback)
                     )
             )
+            .branch(
+                dptree::entry()
+                    .filter_map(is_admin_menu_user_callback)
+                    .branch(
+                        case![true]
+                            .endpoint(admin::handle_admin_menu_user_callback)
+                    )
+            )
         ;
         
         let compose_handler = Update::filter_message()
@@ -116,4 +126,8 @@ fn extract_menu_callback(q: CallbackQuery) -> Option<MenuCallback> {
 
 fn extract_admin_menu_callback(q: CallbackQuery) -> Option<AdminMenuCallback> {
     q.data.and_then(|str| AdminMenuCallback::try_from(str).ok())
+}
+
+fn is_admin_menu_user_callback(q: CallbackQuery) -> Option<bool> {
+    Some(q.data?.starts_with("admin_menu_user:"))
 }

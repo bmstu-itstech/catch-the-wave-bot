@@ -22,6 +22,15 @@ impl UserRepository for InMemoryUserRepository {
         Ok(guard.get(&id).cloned())
     }
 
+    async fn find_by_name(&self, name: &str) -> Result<Option<User>, StdError> {
+        let guard = self.m.read().unwrap();
+        let user = guard
+            .iter()
+            .find(|(_, user)| user.username.eq(name))
+            .map(|(_, user)| user.clone());
+        Ok(user)
+    }
+
     async fn all(&self) -> Result<Vec<User>, StdError> {
         let guard = self.m.read().unwrap();
         Ok(guard.values().cloned().collect())

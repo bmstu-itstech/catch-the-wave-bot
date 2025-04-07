@@ -37,6 +37,7 @@ pub struct AdminMenu {
     pub users_button: StaticText,
     pub meetings_button: StaticText,
     pub users_query_header: StaticText,
+    pub user_not_found: StaticText,
 }
 
 impl AdminMenu {
@@ -47,6 +48,20 @@ impl AdminMenu {
                 String::from(self.users_query_header), 
                 |prev, cur| prev + "@" + cur + "\n"
             )
+    }
+    
+    pub fn user_info_text(
+        &self, 
+        username: &str,
+        full_name: &str,
+        group_name: &str,
+    ) -> String {
+        format!(
+            "Никнейм в Telegram: @{}\n\
+             ФИО: @{}\n\
+             Уч. группа: @{}\n",
+            username, full_name, group_name
+        )
     }
 }
 
@@ -86,5 +101,6 @@ pub const T: Texts = Texts {
         users_button: "Пользователи",
         meetings_button: "Встречи",
         users_query_header: "Все пользователи бота",
+        user_not_found: "Пользователь не найден :(",
     }
 };

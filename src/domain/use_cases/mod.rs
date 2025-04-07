@@ -8,6 +8,7 @@ mod get_current_meeting;
 mod check_admin;
 mod get_all_users;
 mod create_quest;
+mod find_user_by_username;
 
 pub use accept_meeting::*;
 pub use start_registration::*;
@@ -18,3 +19,5 @@ pub use get_menu_state::*;
 pub use get_current_meeting::*;
 pub use check_admin::*;
 pub use get_all_users::*;
+pub use create_quest::*;
+pub use find_user_by_username::*;

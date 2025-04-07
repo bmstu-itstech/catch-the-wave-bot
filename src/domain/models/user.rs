@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use crate::domain::models::{CurrentMeeting, NextMeeting};
 use crate::domain::models::profile::Profile;
 

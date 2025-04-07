@@ -2,7 +2,8 @@ use teloxide::dispatching::dialogue::GetChatId;
 use teloxide::prelude::*;
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardMarkup};
 
-use crate::domain::use_cases::{CheckAdminUseCase, GetAllUsersUseCase};
+use crate::domain::models::User;
+use crate::domain::use_cases::{CheckAdminUseCase, FindUserByUsernameUseCase, GetAllUsersUseCase};
 
 use super::texts::T;
 use super::utils::{CwBotError, CwHandlerResult};
@@ -33,19 +34,73 @@ pub async fn handle_admin_menu_users_callback(
     use_case: GetAllUsersUseCase,
 ) -> CwHandlerResult {
     bot.answer_callback_query(&q.id).await?;
-    
+
     let users = use_case.execute().await
         .map_err(|err| CwBotError::External(err.into()))?;
-    
-    let usernames = users
-        .iter()
-        .map(|user| user.username.as_str())
-        .collect::<Vec<_>>();
-    
-    bot.send_message(q.chat_id().unwrap(), T.admin_menu.users_query_text(usernames.as_slice())).await?;
+
+    let keyboard = build_admin_menu_users_keyboard(&users);
+    bot.send_message(q.chat_id().unwrap(), T.admin_menu.users_query_header)
+        .reply_markup(keyboard)
+        .await?;
     
     Ok(())
 }
+
+pub async fn handle_admin_menu_user_callback(
+    bot: Bot,
+    q: CallbackQuery,
+    use_case: FindUserByUsernameUseCase,
+) -> CwHandlerResult {
+    bot.answer_callback_query(&q.id).await?;
+    
+    let username = q.data.as_ref().unwrap().split(":").last().unwrap().to_string();
+    let user = use_case.execute(&username).await
+        .map_err(|err| CwBotError::External(err.into()))?;
+    
+    let user = match user {
+        None => {
+            bot.send_message(q.chat_id().unwrap(), T.admin_menu.user_not_found).await?;
+            return Ok(())
+        },
+        Some(user) => user,
+    };
+    
+    bot.send_message(q.chat_id().unwrap(), T.admin_menu.user_info_text(
+        user.username.as_str(),
+        user.profile.as_ref().unwrap().full_name.as_str(),
+        user.profile.as_ref().unwrap().group_name.as_str(),
+    )).await?;
+    
+    Ok(())
+}
+
+pub fn build_admin_menu_users_keyboard(users: &[User]) -> InlineKeyboardMarkup {
+    let buttons = users
+            .iter()
+            .map(|user| build_user_inline_button(user))
+            .collect::<Vec<_>>();
+    
+    InlineKeyboardMarkup::new(
+        buttons.chunks(2)
+            .map(|chunk| Vec::from(chunk))
+            .collect::<Vec<_>>()
+    )
+}
+
+pub fn build_user_inline_button(user: &User) -> InlineKeyboardButton {
+    InlineKeyboardButton::callback(
+        format!("@{}", user.username),
+        format!("admin_menu_user:{}", user.username.as_str()), 
+    )
+}
+
+/*pub async fn handle_admin_menu_users_pagination(
+    bot: Bot,
+    q: CallbackQuery,
+    storage: PaginationStorage,
+) -> CwHandlerResult {
+    
+}*/
 
 #[derive(Clone)]
 pub enum AdminMenuCallback {
@@ -56,7 +111,7 @@ pub enum AdminMenuCallback {
 pub fn build_admin_menu_keyboard() -> InlineKeyboardMarkup {
     InlineKeyboardMarkup::new(vec![
         vec![
-            AdminMenuCallback::Users.into(), 
+            AdminMenuCallback::Users.into(),
             AdminMenuCallback::Meetings.into(),
         ],
     ])

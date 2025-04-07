@@ -1,7 +1,7 @@
 use teloxide::prelude::Bot;
 
 use crate::core::dispatcher::CwDispatcher;
-use crate::domain::use_cases::{AcceptMeetingUseCase, CheckAdminUseCase, CompleteRegistrationUseCase, GetAllUsersUseCase, GetCurrentMeetingUseCase, GetMenuStateUseCase, GetNextMeetingUseCase, RejectMeetingUseCase, StartRegistrationUseCase};
+use crate::domain::use_cases::{AcceptMeetingUseCase, CheckAdminUseCase, CompleteRegistrationUseCase, FindUserByUsernameUseCase, GetAllUsersUseCase, GetCurrentMeetingUseCase, GetMenuStateUseCase, GetNextMeetingUseCase, RejectMeetingUseCase, StartRegistrationUseCase};
 
 pub struct CwBot {
     bot: Bot,
@@ -25,6 +25,7 @@ impl CwBot {
         get_current_meeting_use_case: GetCurrentMeetingUseCase,
         check_admin_use_case: CheckAdminUseCase,
         get_all_users_use_case: GetAllUsersUseCase,
+        find_user_by_username_use_case: FindUserByUsernameUseCase,
     ) {
         log::info!("Starting bot...");
         
@@ -39,6 +40,7 @@ impl CwBot {
             get_current_meeting_use_case,
             check_admin_use_case,
             get_all_users_use_case,
+            find_user_by_username_use_case,
         ).await;
         dispatcher.dispatch().await;
     }

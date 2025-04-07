@@ -9,6 +9,8 @@ pub trait UserRepository: Send + Sync {
     
     async fn user(&self, id: i64) -> Result<Option<User>, StdError>;
     
+    async fn find_by_name(&self, name: &str) -> Result<Option<User>, StdError>;
+    
     async fn all(&self) -> Result<Vec<User>, StdError>;
 }
 

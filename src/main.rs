@@ -3,7 +3,7 @@ use chrono::Utc;
 use crate::core::bot::CwBot;
 use crate::domain::interfaces::{QuestRepository, UserRepository};
 use crate::domain::models::{Profile, User};
-use crate::domain::use_cases::{AcceptMeetingUseCase, CheckAdminUseCase, CompleteRegistrationUseCase, GetAllUsersUseCase, GetCurrentMeetingUseCase, GetMenuStateUseCase, GetNextMeetingUseCase, RejectMeetingUseCase, StartRegistrationUseCase};
+use crate::domain::use_cases::{AcceptMeetingUseCase, CheckAdminUseCase, CompleteRegistrationUseCase, FindUserByUsernameUseCase, GetAllUsersUseCase, GetCurrentMeetingUseCase, GetMenuStateUseCase, GetNextMeetingUseCase, RejectMeetingUseCase, StartRegistrationUseCase};
 use crate::services::{InMemoryQuestRepository, InMemoryUserRepository, MockAuthService};
 
 mod core;
@@ -42,7 +42,7 @@ async fn main() {
     ).await
         .expect("Failed to save quest");
 
-    for i in 1..=20 {
+    for i in 1..=30 {
         user_repo.save(user_from_num(i)).await.expect("failed to save user");
     }
 
@@ -58,6 +58,7 @@ async fn main() {
     );
     let check_admin_use_case = CheckAdminUseCase::new(auth_service.clone());
     let get_all_users_use_case = GetAllUsersUseCase::new(user_repo.clone());
+    let find_user_by_username_use_case = FindUserByUsernameUseCase::new(user_repo.clone());
 
     CwBot::new().run(
         start_registration_use_case,
@@ -69,5 +70,6 @@ async fn main() {
         get_current_meeting_use_case,
         check_admin_use_case,
         get_all_users_use_case,
+        find_user_by_username_use_case,
     ).await
 }
