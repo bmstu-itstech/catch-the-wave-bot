@@ -1,27 +1,30 @@
-use chrono::{DateTime, Utc};
+use crate::domain::error::DomainError;
 use crate::domain::models::{Quest, User};
 
-pub(crate) type StdError = Box<dyn std::error::Error + Send + Sync>;
 
 #[async_trait::async_trait]
 pub trait UserRepository: Send + Sync {
-    async fn save(&self, user: User) -> Result<User, StdError>;
+    async fn save(&self, user: &User) -> Result<(), DomainError>;
     
-    async fn user(&self, id: i64) -> Result<Option<User>, StdError>;
+    async fn update(&self, user: &User) -> Result<(), DomainError>;
     
-    async fn find_by_name(&self, name: &str) -> Result<Option<User>, StdError>;
+    async fn user(&self, id: i64) -> Result<User, DomainError>;
     
-    async fn all(&self) -> Result<Vec<User>, StdError>;
+    async fn all(&self) -> Result<Vec<User>, DomainError>;
 }
+
 
 #[async_trait::async_trait]
 pub trait AuthService: Send + Sync {
-    async fn is_admin(&self, user_id: i64) -> Result<bool, StdError>;
+    async fn is_admin(&self, user_id: i64) -> Result<bool, DomainError>;
 }
+
 
 #[async_trait::async_trait]
 pub trait QuestRepository: Send + Sync {
-    async fn create(&self, text: &str, start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Quest, StdError>;
+    async fn create(&self, text: &str) -> Result<Quest, DomainError>;
     
-    async fn quest(&self, id: i64) -> Result<Option<Quest>, StdError>;
+    async fn quest(&self, id: i64) -> Result<Quest, DomainError>;
+    
+    async fn next_quest_id(&self, id: i64) -> Result<Option<i64>, DomainError>;
 }

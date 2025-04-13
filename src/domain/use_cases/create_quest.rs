@@ -1,8 +1,8 @@
 use std::sync::Arc;
-use chrono::{DateTime, Utc};
-
+use crate::domain::error::DomainError;
 use crate::domain::interfaces::QuestRepository;
 use crate::domain::models::Quest;
+
 
 #[derive(Clone)]
 pub struct CreateQuestUseCase {
@@ -17,16 +17,7 @@ impl CreateQuestUseCase {
     pub async fn execute(
         &self,
         text: &str,
-        start: DateTime<Utc>,
-        end: DateTime<Utc>,
-    ) -> Result<Quest, CreateQuestError> {
-        self.quest_repo.create(text, start, end).await
-            .map_err(|e| e.into())
+    ) -> Result<Quest, DomainError> {
+        self.quest_repo.create(text).await
     }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum CreateQuestError {
-    #[error("external service error: {0}")]
-    ServiceError(#[from] Box<dyn std::error::Error + Send + Sync>),
 }

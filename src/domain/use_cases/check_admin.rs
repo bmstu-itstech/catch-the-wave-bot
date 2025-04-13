@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::domain::interfaces::AuthService;
 
+
 #[derive(Clone)]
 pub struct CheckAdminUseCase {
     auth_service: Arc<dyn AuthService>,

@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
+use crate::domain::error::DomainError;
 use crate::domain::interfaces::UserRepository;
-use crate::domain::models;
+use crate::domain::models::{CurrentMeeting, CurrentMeetingState, Profile, User};
+
 
 #[derive(Clone)]
 pub struct CompleteRegistrationUseCase {
@@ -18,26 +20,15 @@ impl CompleteRegistrationUseCase {
         user_id: i64,
         full_name: &str,
         group_name: &str,
-    ) -> Result<models::User, CompleteRegistrationError> {
-        let profile = models::Profile::new(full_name, group_name);
-        let mut user = self.user_repo.user(user_id).await?
-            .ok_or(CompleteRegistrationError::UserNotFound(user_id))?;
-        
+    ) -> Result<User, DomainError> {
+        let profile = Profile::new(full_name, group_name);
+        let mut user = self.user_repo.user(user_id).await?;
         user.set_profile(profile);
-        
-        user.current_meeting = Some(models::CurrentMeeting::new(1, 1));
-        user.next_meeting = Some(models::NextMeeting::new(1, 1));
-        
-        self.user_repo.save(user).await
-            .map_err(|e| e.into())
+        user.current_meeting = Some(CurrentMeeting {
+            state: CurrentMeetingState::Active,
+            partner_id: 1,
+        });
+        self.user_repo.update(&user).await?;
+        Ok(user)
     }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum CompleteRegistrationError {
-    #[error("user {0} not found")]
-    UserNotFound(i64),
-    
-    #[error("external service error: {0}")]
-    ServiceError(#[from] Box<dyn std::error::Error + Send + Sync>),
 }

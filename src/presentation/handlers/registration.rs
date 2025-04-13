@@ -1,9 +1,9 @@
 use teloxide::prelude::*;
 
 use crate::core::fsm::CwDialogueState;
+use crate::domain::error::DomainError;
 use crate::domain::use_cases::{
-    CompleteRegistrationError, CompleteRegistrationUseCase, GetMenuStateUseCase, 
-    StartRegistrationError, StartRegistrationUseCase,
+    CompleteRegistrationUseCase, GetMenuStateUseCase, StartRegistrationUseCase,
 };
 use crate::presentation::handlers::menu::send_menu;
 use super::texts::T;
@@ -22,10 +22,9 @@ pub async fn handle_start_command(
     
     if let Err(err) = start_registration_use_case.execute(msg.chat.id.0, username).await {
         return match err {
-            StartRegistrationError::UserAlreadyRegistered(_) => 
+            DomainError::UserAlreadyExists(_) =>
                 send_menu(bot, msg, get_menu_state_use_case).await,
-            StartRegistrationError::ServiceError(e) => 
-                Err(e.into()),
+            _ => Err(CwBotError::Other(err.to_string())),
         }
     }
 
@@ -48,12 +47,8 @@ pub async fn handle_re_register_command(
     let username = msg.chat.username()
         .ok_or(CwBotError::Other(format!("no username for user id {}", msg.chat.id.0)))?;
     
-    if let Err(err) = use_case.execute(msg.chat.id.0, username).await {
-        match err {
-            StartRegistrationError::UserAlreadyRegistered(_) => {}, // ignore,
-            StartRegistrationError::ServiceError(e) => return Err(e.into()),
-        }
-    }
+    use_case.execute(msg.chat.id.0, username).await
+        .map_err(|err| CwBotError::Other(err.to_string()))?;
 
     log::info!("user @{:?} has started re-registration", msg.chat.username());
 
@@ -100,10 +95,7 @@ pub async fn receive_group_name(
         group_name.as_str(),
     ).await {
         Ok(user) => user,
-        Err(err) => return match err {
-            CompleteRegistrationError::UserNotFound(_) => Err(CwBotError::Other(err.to_string())),
-            CompleteRegistrationError::ServiceError(e) => Err(e.into()),
-        }
+        Err(err) => return Err(CwBotError::Other(err.to_string())),
     };
     
     log::info!("user @{:?} has completed registration: {:?}", msg.chat.username(), user);

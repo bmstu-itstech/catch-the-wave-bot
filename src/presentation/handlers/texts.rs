@@ -22,6 +22,11 @@ impl MeetingTexts {
         let header = self.current_meeting_header;
         format!("{header}\n\nПартнёр: @{partner}\n\n{quest}")
     }
+    
+    pub fn next_meeting_text(&self, quest: &str) -> String {
+        let header = self.current_meeting_header;
+        format!("{header}\n\n{quest}")
+    }
 }
 
 pub struct Menu {
@@ -38,6 +43,15 @@ pub struct AdminMenu {
     pub meetings_button: StaticText,
     pub users_query_header: StaticText,
     pub user_not_found: StaticText,
+    pub meetings_text: StaticText,
+    pub meetings_quests_button: StaticText,
+    pub meetings_assign_button: StaticText,
+    pub meetings_verify_button: StaticText,
+    pub meetings_statistics_button: StaticText,
+    pub meetings_promote_button: StaticText,
+    pub quests_create_next_button: StaticText,
+    pub quests_create_next_text: StaticText,
+    pub quests_create_next_success: StaticText,
 }
 
 impl AdminMenu {
@@ -61,6 +75,22 @@ impl AdminMenu {
              ФИО: @{}\n\
              Уч. группа: @{}\n",
             username, full_name, group_name
+        )
+    }
+    
+    pub fn quests_info(
+        &self,
+        current_quest_text: Option<String>,
+        next_quest_text: Option<String>,
+    ) -> String {
+        format!(
+            "<b>Текущий квест</b>\n\
+             {}\n\
+             \n\
+             <b>Следующий квест</b>\n\
+             {}\n",
+            current_quest_text.unwrap_or(String::from("-")), 
+            next_quest_text.unwrap_or(String::from("-"))
         )
     }
 }
@@ -102,5 +132,14 @@ pub const T: Texts = Texts {
         meetings_button: "Встречи",
         users_query_header: "Все пользователи бота",
         user_not_found: "Пользователь не найден :(",
+        meetings_text: "Админ-панель встреч",
+        meetings_quests_button: "Задания",
+        meetings_assign_button: "Назначить пары",
+        meetings_verify_button: "Верифицировать",
+        meetings_statistics_button: "Статистика",
+        meetings_promote_button: "Обновить задания",
+        quests_create_next_button: "Создать следующее",
+        quests_create_next_text: "Введите описание задания",
+        quests_create_next_success: "Успешно создано!",
     }
 };

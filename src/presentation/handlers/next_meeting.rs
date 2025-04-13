@@ -2,7 +2,9 @@ use teloxide::prelude::*;
 use teloxide::types::{KeyboardButton, KeyboardMarkup};
 
 use crate::core::fsm::CwDialogueState;
-use crate::domain::use_cases::{AcceptMeetingUseCase, GetMenuStateUseCase, GetNextMeetingError, GetNextMeetingUseCase, RejectMeetingUseCase};
+use crate::domain::use_cases::{
+    AcceptMeetingUseCase, GetMenuStateUseCase, GetNextMeetingUseCase, RejectMeetingUseCase
+};
 use crate::presentation::handlers::menu::send_menu;
 
 use super::texts::T;
@@ -17,20 +19,10 @@ pub async fn handle_next_meeting_callback(
 ) -> CwHandlerResult {
     bot.answer_callback_query(q.id).await?;
     
-    let next_meeting = match use_case.execute(dialogue.chat_id().0).await {
-        Ok(next_meeting) => next_meeting,
-        Err(err) => return match err {
-            GetNextMeetingError::UserNotFound(_) => Err(CwBotError::Other(err.to_string())),
-            GetNextMeetingError::ServiceError(e) => Err(e.into()),
-        }
-    };
+    let next_meeting = use_case.execute(dialogue.chat_id().0).await
+        .map_err(|err| CwBotError::Other(err.to_string()))?;
 
-    if next_meeting.is_none() {
-        bot.send_message(dialogue.chat_id(), T.meeting.no_next_meeting).await?;
-        return Ok(());
-    }
-
-    bot.send_message(dialogue.chat_id(), T.meeting.accept_next_meeting)
+    bot.send_message(dialogue.chat_id(), T.meeting.next_meeting_text(&next_meeting.text))
         .reply_markup(next_meeting_keyboard())
         .await?;
 
@@ -52,7 +44,7 @@ pub async fn handle_next_meeting_accept(
 
     bot.send_message(msg.chat.id, T.meeting.after_accept).await?;
     dialogue.update(CwDialogueState::Idle).await?;
-    log::info!("user {} accepted the next meeting", msg.chat.username().unwrap());
+    log::info!("user @{} accepted the next meeting", msg.chat.username().unwrap());
     
     send_menu(bot, msg, get_menu_state_use_case).await
 }
@@ -70,7 +62,7 @@ pub async fn handle_next_meeting_reject(
 
     bot.send_message(msg.chat.id, T.meeting.after_reject).await?;
     dialogue.update(CwDialogueState::Idle).await?;
-    log::info!("user {} rejected the next meeting", msg.chat.username().unwrap());
+    log::info!("user @{} rejected the next meeting", msg.chat.username().unwrap());
     
     send_menu(bot, msg, get_menu_state_use_case).await
 }

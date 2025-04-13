@@ -1,4 +1,5 @@
-use crate::domain::interfaces::{AuthService, StdError};
+use crate::domain::error::DomainError;
+use crate::domain::interfaces::AuthService;
 
 #[derive(Default)]
 pub struct MockAuthService {
@@ -7,7 +8,7 @@ pub struct MockAuthService {
 
 #[async_trait::async_trait]
 impl AuthService for MockAuthService {
-    async fn is_admin(&self, user_id: i64) -> Result<bool, StdError> {
+    async fn is_admin(&self, user_id: i64) -> Result<bool, DomainError> {
         Ok(self.admin_ids.contains(&user_id))
     }
 }

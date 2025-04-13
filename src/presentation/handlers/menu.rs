@@ -2,7 +2,7 @@ use teloxide::dispatching::dialogue::GetChatId;
 use teloxide::prelude::*;
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardMarkup};
 
-use crate::domain::use_cases::{GetMenuStateError, GetMenuStateUseCase, MenuCategory, MenuState};
+use crate::domain::use_cases::{GetMenuStateUseCase, MenuCategory, MenuState};
 
 use super::texts::T;
 use super::utils::{CwBotError, CwHandlerResult};
@@ -29,13 +29,8 @@ async fn send_menu_in_chat(
     chat_id: ChatId,
     use_case: GetMenuStateUseCase,
 ) -> CwHandlerResult {
-    let menu_state = match use_case.execute(chat_id.0).await {
-        Ok(state) => state,
-        Err(err) => return match err {
-            GetMenuStateError::UserNotFound(_) => Err(CwBotError::Other(err.to_string())),
-            GetMenuStateError::ServiceError(_) => Err(CwBotError::External(err.into())),
-        },
-    };
+    let menu_state = use_case.execute(chat_id.0).await
+        .map_err(|err| CwBotError::Other(err.to_string()))?;
 
     let keyboard = build_keyboard(menu_state);
 

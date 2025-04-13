@@ -4,10 +4,13 @@ use teloxide::dispatching::{dialogue, DefaultKey, Dispatcher, UpdateHandler};
 use teloxide::prelude::*;
 
 use crate::core::fsm::CwDialogueState;
-use crate::domain::use_cases::{AcceptMeetingUseCase, CompleteRegistrationUseCase, StartRegistrationUseCase, RejectMeetingUseCase, GetNextMeetingUseCase, GetMenuStateUseCase, GetCurrentMeetingUseCase, CheckAdminUseCase, GetAllUsersUseCase, FindUserByUsernameUseCase};
+use crate::domain::use_cases::{AcceptMeetingUseCase, CompleteRegistrationUseCase, 
+                               StartRegistrationUseCase, RejectMeetingUseCase, 
+                               GetNextMeetingUseCase, GetMenuStateUseCase, GetCurrentMeetingUseCase,
+                               CheckAdminUseCase, GetAllUsersUseCase};
 use crate::presentation::handlers::commands::Command;
 use crate::presentation::handlers::{admin, current_meeting, next_meeting, registration};
-use crate::presentation::handlers::admin::AdminMenuCallback;
+use crate::presentation::handlers::admin::{AdminMenuCallback, AdminMenuMeetingsCallback, AdminMenuQuestsCallback};
 use crate::presentation::handlers::menu::MenuCallback;
 use crate::presentation::handlers::next_meeting::NextMeeting;
 use crate::presentation::handlers::utils::CwBotError;
@@ -26,7 +29,6 @@ impl CwDispatcher {
         get_current_meeting_use_case: GetCurrentMeetingUseCase,
         check_admin_use_case: CheckAdminUseCase,
         get_all_users_use_case: GetAllUsersUseCase,
-        find_user_by_username_use_case: FindUserByUsernameUseCase,
     ) -> Dispatcher<Bot, CwBotError, DefaultKey> {
         Dispatcher::builder(bot, Self::schema())
             .dependencies(dptree::deps![
@@ -39,8 +41,7 @@ impl CwDispatcher {
                 get_next_meeting_use_case,
                 get_current_meeting_use_case,
                 check_admin_use_case,
-                get_all_users_use_case,
-                find_user_by_username_use_case
+                get_all_users_use_case
             ])
             .default_handler(|upd| async move {
                 log::warn!("Unhandled update: {:?}", upd);
@@ -76,6 +77,10 @@ impl CwDispatcher {
                     .filter(|msg: Message| msg.text().map(String::from) == Some(NextMeeting::Reject.into()))
                     .endpoint(next_meeting::handle_next_meeting_reject)
             )
+            .branch(
+                case![CwDialogueState::AwaitingQuestText]
+                    .endpoint(admin::receive_admin_menu_quest_create_text)
+            )
         ;
 
         let callback_handler = Update::filter_callback_query()
@@ -98,6 +103,10 @@ impl CwDispatcher {
                         case![AdminMenuCallback::Users]
                             .endpoint(admin::handle_admin_menu_users_callback)
                     )
+                    .branch(
+                        case![AdminMenuCallback::Meetings]
+                            .endpoint(admin::handle_admin_menu_meetings_callback)
+                    )
             )
             .branch(
                 dptree::entry()
@@ -105,6 +114,22 @@ impl CwDispatcher {
                     .branch(
                         case![true]
                             .endpoint(admin::handle_admin_menu_user_callback)
+                    )
+            )
+            /*.branch(
+                dptree::entry()
+                    .filter_map(extract_admin_menu_meetings_callback)
+                    .branch(
+                        case![AdminMenuMeetingsCallback::Quests]
+                            .endpoint(admin::handle_admin_menu_quest_callback)
+                    )
+            )*/
+            .branch(
+                dptree::entry()
+                    .filter_map(extract_admin_menu_quests_callback)
+                    .branch(
+                        case![AdminMenuQuestsCallback::CreateNext]
+                            .endpoint(admin::handle_admin_menu_quest_create_callback)
                     )
             )
         ;
@@ -126,6 +151,14 @@ fn extract_menu_callback(q: CallbackQuery) -> Option<MenuCallback> {
 
 fn extract_admin_menu_callback(q: CallbackQuery) -> Option<AdminMenuCallback> {
     q.data.and_then(|str| AdminMenuCallback::try_from(str).ok())
+}
+
+fn extract_admin_menu_meetings_callback(q: CallbackQuery) -> Option<AdminMenuMeetingsCallback> {
+    q.data.and_then(|str| AdminMenuMeetingsCallback::try_from(str).ok())
+}
+
+fn extract_admin_menu_quests_callback(q: CallbackQuery) -> Option<AdminMenuQuestsCallback> {
+    q.data.and_then(|str| AdminMenuQuestsCallback::try_from(str).ok())
 }
 
 fn is_admin_menu_user_callback(q: CallbackQuery) -> Option<bool> {

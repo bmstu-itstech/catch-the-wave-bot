@@ -6,16 +6,16 @@ use crate::domain::models::User;
 
 
 #[derive(Clone)]
-pub struct GetAllUsersUseCase {
+pub struct GetUserUseCase {
     user_repo: Arc<dyn UserRepository>,
 }
 
-impl GetAllUsersUseCase {
+impl GetUserUseCase {
     pub fn new(user_repo: Arc<dyn UserRepository>) -> Self {
         Self { user_repo }
     }
 
-    pub async fn execute(&self) -> Result<Vec<User>, DomainError> {
-        self.user_repo.all().await
+    pub async fn execute(&self, user_id: i64) -> Result<User, DomainError> {
+        self.user_repo.user(user_id).await
     }
 }

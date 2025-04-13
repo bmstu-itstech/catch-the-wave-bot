@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
+use crate::domain::error::DomainError;
 use crate::domain::interfaces::{QuestRepository, UserRepository};
+
 
 pub struct CurrentMeetingDTO {
     pub partner_username: String,
@@ -21,42 +23,21 @@ impl GetCurrentMeetingUseCase {
         Self{ user_repo, quest_repo }
     }
 
-    pub async fn execute(self, user_id: i64) -> Result<CurrentMeetingDTO, GetCurrentMeetingError> {
-        let user = self.user_repo.user(user_id).await?
-            .ok_or(GetCurrentMeetingError::UserNotFound(user_id))?;
+    pub async fn execute(self, user_id: i64) -> Result<CurrentMeetingDTO, DomainError> {
+        let user = self.user_repo.user(user_id).await?;
         
         let current = user.current_meeting
-            .ok_or(GetCurrentMeetingError::NoCurrentMeeting)?;
+            .ok_or(DomainError::NoCurrentMeeting(user_id))?;
         
-        let partner = self.user_repo.user(current.partner_id).await?
-            .ok_or(GetCurrentMeetingError::PartnerNotFound(current.partner_id))?;
+        let partner = self.user_repo.user(current.partner_id).await?;
         
-        let quest = self.quest_repo.quest(current.quest_id).await?
-            .ok_or(GetCurrentMeetingError::QuestNotFound(current.quest_id))?;
+        let current_quest = self.quest_repo.quest(user.quest_index).await?;
 
         let dto = CurrentMeetingDTO{
             partner_username: partner.username,
-            quest_text: quest.text,
+            quest_text: current_quest.text,
         };
         
         Ok(dto)
     }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum GetCurrentMeetingError {
-    #[error("user {0} not found")]
-    UserNotFound(i64),
-    
-    #[error("partner user {0} not found")]
-    PartnerNotFound(i64),
-    
-    #[error("no current meeting")]
-    NoCurrentMeeting,
-    
-    #[error("quest {0} not found")]
-    QuestNotFound(i64),
-
-    #[error("external service error: {0}")]
-    ServiceError(#[from] Box<dyn std::error::Error + Send + Sync>),
 }

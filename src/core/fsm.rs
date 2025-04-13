@@ -11,4 +11,6 @@ pub enum CwDialogueState {
 
     Menu,
     AwaitingAcceptNextMeeting,
+    
+    AwaitingQuestText,
 }

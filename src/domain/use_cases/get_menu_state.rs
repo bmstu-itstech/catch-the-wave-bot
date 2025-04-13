@@ -1,8 +1,9 @@
-
 use std::sync::Arc;
 
+use crate::domain::error::DomainError;
 use crate::domain::interfaces::UserRepository;
 use crate::domain::models::NextMeetingState;
+
 
 #[derive(PartialEq)]
 pub enum MenuCategory {
@@ -26,9 +27,8 @@ impl GetMenuStateUseCase {
         Self{ user_repo }
     }
 
-    pub async fn execute(self, user_id: i64) -> Result<MenuState, GetMenuStateError> {
-        let user = self.user_repo.user(user_id).await?
-            .ok_or(GetMenuStateError::UserNotFound(user_id))?;
+    pub async fn execute(self, user_id: i64) -> Result<MenuState, DomainError> {
+        let user = self.user_repo.user(user_id).await?;
 
         let mut categories = Vec::new();
         categories.push(MenuCategory::Profile);
@@ -38,21 +38,10 @@ impl GetMenuStateUseCase {
             categories.push(MenuCategory::CurrentMeeting);
         }
         
-        if user.next_meeting.is_some() 
-            && user.next_meeting.unwrap().state == NextMeetingState::Pending 
-        {
+        if matches!(user.next_meeting, NextMeetingState::Pending) {
             categories.push(MenuCategory::NextMeeting);
         }
         
         Ok(MenuState{ categories })
     }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum GetMenuStateError {
-    #[error("user {0} not found")]
-    UserNotFound(i64),
-    
-    #[error("external service error: {0}")]
-    ServiceError(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
