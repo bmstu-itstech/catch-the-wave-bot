@@ -37,7 +37,7 @@ impl UserTask {
         description: &str,
     ) -> String {
         format!(
-            "⭐️ Появилось задание, а также твой партнёр на неделю!\n\
+            "⭐️ Вот твоё задание и партнёр на неделю!\n\
              \n\
              <b>Партнёр</b>: @{partner_username}\n\
              <b>Задание</b>: {title}\n\
@@ -72,7 +72,7 @@ impl Profile {
 pub struct AdminMenu {
     pub text: StaticText,
     pub users_button: StaticText,
-    pub meetings_button: StaticText,
+    pub create_next_task_button: StaticText,
     pub assign_partner_button: StaticText,
     pub verification_button: StaticText,
 }
@@ -127,6 +127,14 @@ pub struct AdminAssign {
     pub assign_first: StaticText,
     pub assign_second: StaticText,
     pub assign_success: StaticText,
+    pub no_next_task: StaticText,
+}
+
+pub struct AdminCreateTask {
+    pub enter_title: StaticText,
+    pub enter_description: StaticText,
+    pub success: StaticText,
+    pub already_exists: StaticText,
 }
 
 pub struct Texts {
@@ -139,6 +147,7 @@ pub struct Texts {
     pub admin_menu: AdminMenu,
     pub admin_users: AdminUsers,
     pub admin_assign: AdminAssign,
+    pub admin_create_task: AdminCreateTask,
 }
 
 pub const T: Texts = Texts {
@@ -177,8 +186,8 @@ pub const T: Texts = Texts {
     admin_menu: AdminMenu {
         text: "Меню администратора",
         users_button: "Пользователи",
-        meetings_button: "Встречи",
-        assign_partner_button: "Партнёры",
+        create_next_task_button: "Создать задание",
+        assign_partner_button: "Пары",
         verification_button: "Подтверждения",
     },
     admin_users: AdminUsers {
@@ -186,9 +195,16 @@ pub const T: Texts = Texts {
         no_users: "Список пользователей пуст... странно, но надеюсь у программистов был бэкап)",
     },
     admin_assign: AdminAssign {
-        insufficient_users: "Недостаточно пользователей, подтвердивших встречу, для назначения пар",
+        insufficient_users: "Недостаточно пользователей, подтвердивших встречу, для назначения пар - должно быть минимум двое",
         assign_first: "Выберите первого пользователя пары",
         assign_second: "Выберите второго пользователя пары",
         assign_success: "Пара успешно назначена",
+        no_next_task: "В базе данных нет информации о следующем задании - без этого невозможно назначить партнёров. Добавьте задание в бота и попробуйте снова",
     },
+    admin_create_task: AdminCreateTask {
+        enter_title: "Введите название задания",
+        enter_description: "Введите текст задания",
+        success: "Задание на следующую неделю успешно создано",
+        already_exists: "Задание на следующую неделю уже существует. Дождитесь начала новой недели для создания следующего",
+    }
 };

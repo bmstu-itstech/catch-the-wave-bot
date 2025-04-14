@@ -82,7 +82,7 @@ impl User {
     }
     
     pub fn is_free(&self) -> bool {
-        self.next_task_status == NextTaskStatus::Pending
+        self.next_task_status == NextTaskStatus::Accepted
     }
 
     pub fn restore(

@@ -1,6 +1,6 @@
 use teloxide::prelude::*;
 
-use crate::domain::use_cases::{AssignPartnerUseCase, GetFreeUsersUseCase};
+use crate::domain::use_cases::{AssignPartnerUseCase, CheckNextTaskUseCase, GetFreeUsersUseCase};
 use crate::presentation::handlers::fsm::CwDialogueState;
 use crate::presentation::handlers::texts::T;
 use crate::presentation::handlers::utils::{CwBotError, CwDialogue, CwHandlerResult};
@@ -12,11 +12,20 @@ pub async fn handle_admin_menu_assign_partner_callback(
     bot: Bot,
     q: CallbackQuery,
     dialogue: CwDialogue,
-    use_case: GetFreeUsersUseCase,
+    get_free_users_use_case: GetFreeUsersUseCase,
+    check_next_task_use_case: CheckNextTaskUseCase,
 ) -> CwHandlerResult {
     bot.answer_callback_query(&q.id).await?;
     
-    let users = use_case.execute().await
+    if !check_next_task_use_case.execute().await
+        .map_err(|err| CwBotError::Other(err.to_string()))?
+    {
+        bot.send_message(dialogue.chat_id(), T.admin_assign.no_next_task)
+            .await?;
+        return Ok(());
+    }
+    
+    let users = get_free_users_use_case.execute().await
         .map_err(|err| CwBotError::External(err.into()))?;
 
     if users.len() < 2 {

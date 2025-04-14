@@ -49,9 +49,13 @@ async fn main() {
     let get_user_use_case = GetUserUseCase::new(user_repo.clone(), task_repo.clone());
     let get_free_users_use_case = GetFreeUsersUseCase::new(user_repo.clone());
     let assign_partner_use_case = AssignPartnerUseCase::new(user_repo.clone(), task_repo.clone(), week_service.clone());
+    let check_next_task_use_case = CheckNextTaskUseCase::new(task_repo.clone(), week_service.clone());
+    let create_next_task_use_case = CreateNextTaskUseCase::new(task_repo.clone(), week_service.clone());
     
     let mut user1 = User::new(1, "testuser");
     user1.set_profile(Profile::new("Иванов Иван Иванович", "СМ13-13Б"));
+    user1.accept()
+        .expect("failed to accept next task");
     user_repo.save(&user1).await
         .expect("failed to save user");
     
@@ -77,6 +81,8 @@ async fn main() {
         get_user_use_case,
         get_free_users_use_case,
         assign_partner_use_case,
+        check_next_task_use_case,
+        create_next_task_use_case,
     ).await;
     dispatcher.dispatch().await;
 }

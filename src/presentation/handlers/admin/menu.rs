@@ -5,6 +5,7 @@ use crate::domain::use_cases::CheckAdminUseCase;
 use crate::presentation::handlers::texts::T;
 use crate::presentation::handlers::utils::{CwBotError, CwHandlerResult};
 
+
 pub async fn handle_admin_command(
     bot: Bot,
     msg: Message,
@@ -25,65 +26,63 @@ pub async fn handle_admin_command(
 }
 
 #[derive(Clone)]
-pub enum AdminMenuCallback {
+pub enum MenuCallback {
     Users,
-    Meetings,
+    CreateNextTask,
     AssignPartner,
-    Verify,
 }
 
 pub fn build_admin_menu_keyboard() -> InlineKeyboardMarkup {
     InlineKeyboardMarkup::new(vec![
         vec![
-            AdminMenuCallback::Users.into(),
-            AdminMenuCallback::Meetings.into(),
+            MenuCallback::CreateNextTask.into(),
         ],
         vec![
-            AdminMenuCallback::AssignPartner.into(),
-            AdminMenuCallback::Verify.into(),
+            MenuCallback::AssignPartner.into(),
+            MenuCallback::Users.into(),
         ],
     ])
 }
 
-impl Into<InlineKeyboardButton> for AdminMenuCallback {
+impl Into<InlineKeyboardButton> for MenuCallback {
     fn into(self) -> InlineKeyboardButton {
         match self {
-            AdminMenuCallback::Users => InlineKeyboardButton::callback(
-                T.admin_menu.users_button, AdminMenuCallback::Users,
+            MenuCallback::Users => InlineKeyboardButton::callback(
+                T.admin_menu.users_button, MenuCallback::Users,
             ),
-            AdminMenuCallback::Meetings => InlineKeyboardButton::callback(
-                T.admin_menu.meetings_button, AdminMenuCallback::Meetings,
+            MenuCallback::CreateNextTask => InlineKeyboardButton::callback(
+                T.admin_menu.create_next_task_button, MenuCallback::CreateNextTask,
             ),
-            AdminMenuCallback::AssignPartner => InlineKeyboardButton::callback(
-                T.admin_menu.assign_partner_button, AdminMenuCallback::AssignPartner,
+            MenuCallback::AssignPartner => InlineKeyboardButton::callback(
+                T.admin_menu.assign_partner_button, MenuCallback::AssignPartner,
             ),
-            AdminMenuCallback::Verify => InlineKeyboardButton::callback(
+            /*AdminMenuCallback::Verify => InlineKeyboardButton::callback(
                 T.admin_menu.verification_button, AdminMenuCallback::Verify,
-            ),
+            ),*/
         }
     }
 }
 
-impl Into<String> for AdminMenuCallback {
+impl Into<String> for MenuCallback {
     fn into(self) -> String {
         match self {
-            AdminMenuCallback::Users => "admin_menu_users".to_string(),
-            AdminMenuCallback::Meetings => "admin_menu_meetings".to_string(),
-            AdminMenuCallback::AssignPartner => "admin_menu_assign_partner".to_string(),
-            AdminMenuCallback::Verify => "admin_menu_verify".to_string(),
+            MenuCallback::Users => "admin_menu_users".to_string(),
+            MenuCallback::CreateNextTask => "admin_menu_create_next_task".to_string(),
+            MenuCallback::AssignPartner => "admin_menu_assign_partner".to_string(),
+            //AdminMenuCallback::Verify => "admin_menu_verify".to_string(),
         }
     }
 }
 
-impl TryFrom<String> for AdminMenuCallback {
+impl TryFrom<String> for MenuCallback {
     type Error = ();
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
-            "admin_menu_users" => Ok(AdminMenuCallback::Users),
-            "admin_menu_meetings" => Ok(AdminMenuCallback::Meetings),
-            "admin_menu_assign_partner" => Ok(AdminMenuCallback::AssignPartner),
-            "admin_menu_verify" => Ok(AdminMenuCallback::Verify),
+            "admin_menu_users" => Ok(MenuCallback::Users),
+            "admin_menu_create_next_task" => Ok(MenuCallback::CreateNextTask),
+            "admin_menu_assign_partner" => Ok(MenuCallback::AssignPartner),
+            //"admin_menu_verify" => Ok(AdminMenuCallback::Verify),
             _ => Err(()),
         }
     }

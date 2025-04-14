@@ -27,6 +27,8 @@ impl CwDispatcher {
         get_user_use_case: GetUserUseCase,
         get_free_users_use_case: GetFreeUsersUseCase,
         assign_partner_use_case: AssignPartnerUseCase,
+        check_next_task_use_case: CheckNextTaskUseCase,
+        create_next_task_use_case: CreateNextTaskUseCase,
     ) -> Dispatcher<Bot, CwBotError, DefaultKey> {
         Dispatcher::builder(bot, Self::schema())
             .dependencies(dptree::deps![
@@ -41,6 +43,8 @@ impl CwDispatcher {
                 get_user_use_case,
                 get_free_users_use_case,
                 assign_partner_use_case,
+                check_next_task_use_case,
+                create_next_task_use_case,
                 InMemStorage::<CwDialogueState>::new()
             ])
             .default_handler(|upd| async move {
@@ -77,6 +81,14 @@ impl CwDispatcher {
                     .filter(|msg: Message| msg.text().map(String::from) == Some(user::NextTaskCallback::Reject.into()))
                     .endpoint(user::handle_next_meeting_reject)
             )
+            .branch(
+                case![CwDialogueState::AwaitingTaskTitle]
+                    .endpoint(admin::receive_task_title)
+            )
+            .branch(
+                case![CwDialogueState::AwaitingTaskDescription { title }]
+                    .endpoint(admin::receive_task_description)
+            )
         ;
 
         let callback_handler = Update::filter_callback_query()
@@ -104,17 +116,17 @@ impl CwDispatcher {
                 dptree::entry()
                     .filter_map(extract_admin_menu_callback)
                     .branch(
-                        case![admin::AdminMenuCallback::Users]
+                        case![admin::MenuCallback::Users]
                             .endpoint(admin::handle_admin_menu_users_callback)
                     )
                     .branch(
-                        case![admin::AdminMenuCallback::AssignPartner]
+                        case![admin::MenuCallback::AssignPartner]
                             .endpoint(admin::handle_admin_menu_assign_partner_callback)
                     )
-                    /*.branch(
-                        case![AdminMenuCallback::Meetings]
-                            .endpoint(admin::handle_admin_menu_meetings_callback)
-                    )*/
+                    .branch(
+                        case![admin::MenuCallback::CreateNextTask]
+                            .endpoint(admin::handle_admin_menu_create_next_task)
+                    )
             )
             .branch(
                 dptree::entry()
@@ -160,8 +172,8 @@ fn extract_menu_callback(q: CallbackQuery) -> Option<user::MenuCallback> {
     q.data.and_then(|str| user::MenuCallback::try_from(str).ok())
 }
 
-fn extract_admin_menu_callback(q: CallbackQuery) -> Option<admin::AdminMenuCallback> {
-    q.data.and_then(|str| admin::AdminMenuCallback::try_from(str).ok())
+fn extract_admin_menu_callback(q: CallbackQuery) -> Option<admin::MenuCallback> {
+    q.data.and_then(|str| admin::MenuCallback::try_from(str).ok())
 }
 
 fn is_admin_menu_user_callback(q: CallbackQuery) -> Option<bool> {

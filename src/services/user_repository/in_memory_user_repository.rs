@@ -14,10 +14,10 @@ pub struct InMemoryUserRepository {
 impl UserRepository for InMemoryUserRepository {
     async fn save(&self, user: &User) -> Result<(), DomainError> {
         let mut guard = self.m.write().unwrap();
-        let prev = guard.insert(user.id(), user.clone());
-        if prev.is_some() {
+        if guard.get(&user.id()).is_some() {
             Err(DomainError::UserAlreadyExists(user.id()))
         } else {
+            guard.insert(user.id(), user.clone());
             Ok(())
         }
     }

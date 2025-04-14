@@ -34,7 +34,7 @@ pub async fn handle_next_meeting_accept(
     accept_task_use_case.execute(msg.chat.id.0).await
         .map_err(|err| CwBotError::Other(err.to_string()))?;
 
-    bot.send_message(msg.chat.id, T.next_task.reject_success).await?;
+    bot.send_message(msg.chat.id, T.next_task.accept_success).await?;
     dialogue.update(CwDialogueState::Idle).await?;
     log::info!("user @{} accepted the next task", msg.chat.username().unwrap());
     
