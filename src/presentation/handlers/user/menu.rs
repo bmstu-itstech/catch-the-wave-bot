@@ -3,10 +3,8 @@ use teloxide::prelude::*;
 use teloxide::types::{InlineKeyboardButton, InlineKeyboardMarkup};
 
 use crate::domain::use_cases::{GetMenuStateUseCase, MenuCategory, MenuState};
-
-use super::texts::T;
-use super::utils::{CwBotError, CwHandlerResult};
-
+use crate::presentation::handlers::texts::T;
+use crate::presentation::handlers::utils::{CwBotError, CwHandlerResult};
 
 pub async fn send_menu(
     bot: Bot,
@@ -44,8 +42,8 @@ async fn send_menu_in_chat(
 pub enum MenuCallback {
     Profile,
     Rules,
-    NextMeeting,
-    CurrentMeeting,
+    NextTask,
+    UserTask,
 }
 
 pub fn build_keyboard(state: MenuState) -> InlineKeyboardMarkup {
@@ -65,12 +63,12 @@ pub fn build_keyboard(state: MenuState) -> InlineKeyboardMarkup {
     }
     
     let mut second_row: Vec<InlineKeyboardButton> = Vec::new();
-    if state.categories.contains(&MenuCategory::NextMeeting) {
-        second_row.push(MenuCallback::NextMeeting.into());
+    if state.categories.contains(&MenuCategory::NextTask) {
+        second_row.push(MenuCallback::NextTask.into());
     }
     
-    if state.categories.contains(&MenuCategory::CurrentMeeting) {
-        second_row.push(MenuCallback::CurrentMeeting.into());
+    if state.categories.contains(&MenuCategory::UserTask) {
+        second_row.push(MenuCallback::UserTask.into());
     }
     
     if !second_row.is_empty() {
@@ -89,11 +87,11 @@ impl Into<InlineKeyboardButton> for MenuCallback {
             MenuCallback::Rules => InlineKeyboardButton::callback(
                 T.menu.rules_button, MenuCallback::Rules,
             ),
-            MenuCallback::NextMeeting => InlineKeyboardButton::callback(
-                T.menu.next_meeting_button, MenuCallback::NextMeeting,
+            MenuCallback::NextTask => InlineKeyboardButton::callback(
+                T.menu.next_task_button, MenuCallback::NextTask,
             ),
-            MenuCallback::CurrentMeeting => InlineKeyboardButton::callback(
-                T.menu.current_meeting_button, MenuCallback::CurrentMeeting,
+            MenuCallback::UserTask => InlineKeyboardButton::callback(
+                T.menu.user_task_button, MenuCallback::UserTask,
             )
         }
     }
@@ -102,10 +100,10 @@ impl Into<InlineKeyboardButton> for MenuCallback {
 impl Into<String> for MenuCallback {
     fn into(self) -> String {
         match self {
-            MenuCallback::Profile => "menu_profile".to_string(),
-            MenuCallback::Rules => "menu_rules".to_string(),
-            MenuCallback::NextMeeting => "menu_next_meeting".to_string(),
-            MenuCallback::CurrentMeeting => "menu_current_meeting".to_string(),
+            MenuCallback::Profile  => "menu_profile".to_string(),
+            MenuCallback::Rules    => "menu_rules".to_string(),
+            MenuCallback::NextTask => "menu_next_task".to_string(),
+            MenuCallback::UserTask => "menu_user_task".to_string(),
         }
     }
 }
@@ -115,10 +113,10 @@ impl TryFrom<String> for MenuCallback {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
-            "menu_profile" => Ok(MenuCallback::Profile),
-            "menu_rules" => Ok(MenuCallback::Rules),
-            "menu_next_meeting" => Ok(MenuCallback::NextMeeting),
-            "menu_current_meeting" => Ok(MenuCallback::CurrentMeeting),
+            "menu_profile"   => Ok(MenuCallback::Profile),
+            "menu_rules"     => Ok(MenuCallback::Rules),
+            "menu_next_task" => Ok(MenuCallback::NextTask),
+            "menu_user_task" => Ok(MenuCallback::UserTask),
             _ => Err(()),
         }
     }

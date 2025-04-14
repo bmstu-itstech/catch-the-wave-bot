@@ -1,65 +1,134 @@
-use chrono::{DateTime, Utc};
+use std::fmt::Display;
 
 use crate::domain::error::DomainError;
-use crate::domain::models::{CurrentMeeting, CurrentMeetingState, NextMeetingState};
 use crate::domain::models::profile::Profile;
+use crate::domain::models::{UserTask, WeekId};
 
-#[derive(Debug, Clone)]
+
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub enum NextTaskStatus {
+    #[default]
+    Pending,
+    Accepted,
+    Rejected,
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct UserId(pub i64);
+
+#[derive(Default, Debug, Clone)]
 pub struct User {
-    pub id: i64,
-    pub username: String,
-    pub created_at: DateTime<Utc>,
+    id: UserId,
+    username: String,
 
-    pub profile: Option<Profile>,
-    pub quest_index: i64,
-    pub current_meeting: Option<CurrentMeeting>,
-    pub next_meeting: NextMeetingState,
+    profile: Option<Profile>,
+    user_task: Option<UserTask>,
+    next_task_status: NextTaskStatus,
+    completed_tasks: i32,
 }
 
 impl User {
     pub fn new(telegram_id: i64, username: impl Into<String>) -> Self {
         Self {
-            id: telegram_id,
+            id: UserId(telegram_id),
             username: username.into(),
-            created_at: Utc::now(),
-            profile: None,
-            quest_index: 0,
-            current_meeting: None,
-            next_meeting: NextMeetingState::Pending,
+            ..Default::default()
         }
     }
-
+    
     pub fn set_profile(&mut self, profile: Profile) {
         self.profile = Some(profile);
     }
     
+    pub fn profile_completed(&self) -> bool {
+        self.profile.is_some()
+    }
+    
     pub fn accept(&mut self) -> Result<(), DomainError> {
-        if !matches!(self.next_meeting, NextMeetingState::Pending) {
+        if self.next_task_status != NextTaskStatus::Pending {
             return Err(DomainError::InvalidStateChange(
-                format!("{:?} -> {:?}", self.next_meeting.clone(), NextMeetingState::Accepted)
+                format!("{:?} -> {:?}", self.next_task_status, NextTaskStatus::Accepted),
             ))
         }
-        self.next_meeting = NextMeetingState::Accepted;
+        self.next_task_status = NextTaskStatus::Accepted;
         Ok(())
     }
     
     pub fn reject(&mut self) -> Result<(), DomainError> {
-        if !matches!(self.next_meeting, NextMeetingState::Pending) {
+        if self.next_task_status != NextTaskStatus::Pending {
             return Err(DomainError::InvalidStateChange(
-                format!("{:?} -> {:?}", self.next_meeting.clone(), NextMeetingState::Rejected)
+                format!("{:?} -> {:?}", self.next_task_status, NextTaskStatus::Rejected)
             ))
         }
-        self.next_meeting = NextMeetingState::Rejected;
+        self.next_task_status = NextTaskStatus::Rejected;
         Ok(())
     }
     
-    pub fn assign_partner(&mut self, partner_id: i64) -> Result<(), DomainError> {
-        if !matches!(self.next_meeting, NextMeetingState::Accepted) {
+    pub fn promote(&mut self, partner_id: UserId, week_id: WeekId) -> Result<(), DomainError> {
+        if self.next_task_status != NextTaskStatus::Accepted {
             return Err(DomainError::InvalidStateChange(
-                format!("{:?} -> {:?}", self.next_meeting.clone(), CurrentMeetingState::Active)
+                format!("{:?} -> {:?}", self.next_task_status, NextTaskStatus::Accepted)
             ))
         }
-        self.current_meeting = Some(CurrentMeeting::new(CurrentMeetingState::Active, partner_id));
+        self.user_task = Some(UserTask::new(week_id, partner_id));
+        self.next_task_status = NextTaskStatus::default();
         Ok(())
+    }
+    
+    pub fn complete_task(&mut self) -> Result<(), DomainError> {
+        let user_task = self.user_task.as_mut().ok_or(DomainError::NoUserTask)?;
+        user_task.complete()?;
+        Ok(())
+    }
+    
+    pub fn is_free(&self) -> bool {
+        self.next_task_status == NextTaskStatus::Pending
+    }
+
+    pub fn restore(
+        id: impl Into<UserId>,
+        username: impl Into<String>,
+        profile: Option<Profile>,
+        user_task: Option<UserTask>,
+        next_task_status: NextTaskStatus,
+        completed_tasks: i32,
+    ) -> Self {
+        Self { id: id.into(), username: username.into(), profile, user_task, next_task_status, completed_tasks }
+    }
+    
+    pub fn id(&self) -> UserId {
+        self.id
+    }
+    
+    pub fn username(&self) -> &str {
+        &self.username
+    }
+    
+    pub fn profile(&self) -> Option<&Profile> {
+        self.profile.as_ref()
+    }
+    
+    pub fn user_task(&self) -> Option<&UserTask> {
+        self.user_task.as_ref()
+    }
+    
+    pub fn next_task_status(&self) -> NextTaskStatus {
+        self.next_task_status
+    }
+    
+    pub fn completed_quests(&self) -> i32 {
+        self.completed_tasks
+    }
+}
+
+impl Into<UserId> for i64 {
+    fn into(self) -> UserId {
+        UserId(self)
+    }
+}
+
+impl Display for UserId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

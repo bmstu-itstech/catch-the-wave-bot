@@ -3,7 +3,7 @@ use teloxide::dispatching::dialogue::{InMemStorage, InMemStorageError};
 use teloxide::prelude::Dialogue;
 use teloxide::RequestError;
 
-use crate::core::fsm::CwDialogueState;
+use super::fsm::CwDialogueState;
 
 pub(crate) type CwDialogue = Dialogue<CwDialogueState, InMemStorage<CwDialogueState>>;
 pub(crate) type CwHandlerResult = Result<(), CwBotError>;

@@ -7,100 +7,138 @@ pub struct RegistrationTexts {
     pub registration_complete: StaticText,
 }
 
-pub struct MeetingTexts {
-    pub no_next_meeting: StaticText,
-    pub accept_next_meeting: StaticText,
-    pub accept_button: StaticText,
-    pub after_accept: StaticText,
-    pub reject_button: StaticText,
-    pub after_reject: StaticText,
-    pub current_meeting_header: StaticText,
-}
-
-impl MeetingTexts {
-    pub fn current_meeting_text(&self, quest: &str, partner: &str) -> String {
-        let header = self.current_meeting_header;
-        format!("{header}\n\nПартнёр: @{partner}\n\n{quest}")
-    }
-    
-    pub fn next_meeting_text(&self, quest: &str) -> String {
-        let header = self.current_meeting_header;
-        format!("{header}\n\n{quest}")
-    }
-}
-
 pub struct Menu {
     pub text: StaticText,
-    pub next_meeting_button: StaticText,
-    pub current_meeting_button: StaticText,
+    pub next_task_button: StaticText,
+    pub user_task_button: StaticText,
     pub profile_button: StaticText,
     pub rules_button: StaticText,
+}
+
+pub struct Rules {
+    pub text: StaticText,
+}
+
+pub struct NextTask {
+    pub text: StaticText,
+    pub accept_button: StaticText,
+    pub reject_button: StaticText,
+    pub accept_success: StaticText,
+    pub reject_success: StaticText,
+}
+
+pub struct UserTask;
+
+impl UserTask {
+    pub fn user_task(
+        &self,
+        partner_username: &str,
+        title: &str,
+        description: &str,
+    ) -> String {
+        format!(
+            "⭐️ Появилось задание, а также твой партнёр на неделю!\n\
+             \n\
+             <b>Партнёр</b>: @{partner_username}\n\
+             <b>Задание</b>: {title}\n\
+             <i>{description}</i>",
+        )
+    }
+}
+
+pub struct Profile {
+    pub re_register_button: StaticText,
+}
+
+impl Profile {
+    pub fn profile(
+        &self,
+        full_name: &str,
+        group_name: &str,
+        next_task: &str,
+        completed_tasks: &i32,
+    ) -> String {
+        format!(
+            "<b>Вот информация о тебе</b>:\n\
+             \n\
+             <b>Полное имя</b>: {full_name}\n\
+             <b>Учебная группа</b>: {group_name}\n\
+             <b>Следующая встреча</b>: {next_task}\n\
+             <b>Завершено</b>: {completed_tasks}",
+        )
+    }
 }
 
 pub struct AdminMenu {
     pub text: StaticText,
     pub users_button: StaticText,
     pub meetings_button: StaticText,
-    pub users_query_header: StaticText,
-    pub user_not_found: StaticText,
-    pub meetings_text: StaticText,
-    pub meetings_quests_button: StaticText,
-    pub meetings_assign_button: StaticText,
-    pub meetings_verify_button: StaticText,
-    pub meetings_statistics_button: StaticText,
-    pub meetings_promote_button: StaticText,
-    pub quests_create_next_button: StaticText,
-    pub quests_create_next_text: StaticText,
-    pub quests_create_next_success: StaticText,
+    pub assign_partner_button: StaticText,
+    pub verification_button: StaticText,
 }
 
-impl AdminMenu {
-    pub fn users_query_text(&self, usernames: &[&str]) -> String {
-        usernames
-            .iter()
-            .fold(
-                String::from(self.users_query_header), 
-                |prev, cur| prev + "@" + cur + "\n"
-            )
-    }
-    
-    pub fn user_info_text(
-        &self, 
+pub struct AdminUsers {
+    pub text: StaticText,
+    pub no_users: StaticText,
+}
+
+impl AdminUsers {
+    pub fn user_info(
+        &self,
         username: &str,
         full_name: &str,
         group_name: &str,
+        next_meeting_state: &str,
+        completed_quests: &i32,
     ) -> String {
         format!(
-            "Никнейм в Telegram: @{}\n\
-             ФИО: @{}\n\
-             Уч. группа: @{}\n",
-            username, full_name, group_name
+            "<b>Никнейм</b>: @{username}\n\
+             <b>ФИО</b>: {full_name}\n\
+             <b>Учебная группа</b>: {group_name}\n\
+             <b>Следующая встреча</b>: {next_meeting_state}\n\
+             <b>Завершено</b>: {completed_quests}",
         )
     }
-    
-    pub fn quests_info(
+
+    pub fn user_info_with_current_meeting(
         &self,
-        current_quest_text: Option<String>,
-        next_quest_text: Option<String>,
+        username: &str,
+        full_name: &str,
+        group_name: &str,
+        next_meeting_state: &str,
+        current_meeting_state: &str,
+        partner_username: &str,
+        completed_quests: &i32,
     ) -> String {
         format!(
-            "<b>Текущий квест</b>\n\
-             {}\n\
-             \n\
-             <b>Следующий квест</b>\n\
-             {}\n",
-            current_quest_text.unwrap_or(String::from("-")), 
-            next_quest_text.unwrap_or(String::from("-"))
+            "<b>Никнейм</b>: @{username}\n\
+             <b>ФИО</b>: {full_name}\n\
+             <b>Учебная группа</b>: {group_name}\n\
+             <b>Следующая встреча</b>: {next_meeting_state}\n\
+             <b>Текущая встреча</b>: {current_meeting_state}\n\
+             <b>Партнёр</b>: @{partner_username}\n\
+             <b>Завершено</b>: {completed_quests}",
         )
     }
 }
 
+pub struct AdminAssign {
+    pub insufficient_users: StaticText,
+    pub assign_first: StaticText,
+    pub assign_second: StaticText,
+    pub assign_success: StaticText,
+}
 
 pub struct Texts {
     pub registration: RegistrationTexts,
-    pub meeting: MeetingTexts,
     pub menu: Menu,
-    pub admin_menu: AdminMenu
+    pub rules: Rules,
+    pub next_task: NextTask,
+    pub user_task: UserTask,
+    pub profile: Profile,
+    pub admin_menu: AdminMenu,
+    pub admin_users: AdminUsers,
+    pub admin_assign: AdminAssign,
 }
 
 pub const T: Texts = Texts {
@@ -110,36 +148,47 @@ pub const T: Texts = Texts {
         enter_group_name: "Твоя учебная группа в формате: СМ11-11Б",
         registration_complete: "Поздравляю, теперь ты точно с нами 🥰",
     },
-    meeting: MeetingTexts {
-        no_next_meeting: "Упс, кажется, следующей встречи не назначено :(",
-        accept_next_meeting: "Подтверди участие в следующей встрече",
+    next_task: NextTask {
+        text: "Подтверди участие в следующей встрече",
         accept_button: "Подтверждаю ✅",
-        after_accept: "Вы подтвердили участие в следующей встрече!",
         reject_button: "Не смогу участвовать ❌",
-        after_reject: "Вы отказались от участия в следующей встречу(",
-        current_meeting_header: "Задание на следующую встречу",
+        accept_success: "🌊 Вы подтвердили участие в следующей встрече!\n\
+                         Скоро здесь появится ваш партнер и задание на неделю",
+        reject_success: "Вы отказались от участия в следующей встрече(",
     },
+    user_task: UserTask{},
     menu: Menu {
         text: "Меню",
-        next_meeting_button: "Следующая встреча ❤️‍🩹",
-        current_meeting_button: "Актуальная встреча 💌",
+        next_task_button: "Следующая встреча ❤️‍🩹",
+        user_task_button: "Актуальная встреча 💌",
         profile_button: "Профиль 🧐",
         rules_button: "Правила ❓",
+    },
+    rules: Rules {
+        text: "Мы рады, что ты с нами на одной волне!🌊\n\
+               Чтобы начать принимать участие в проекте, нужно подтвердить участие в разделе: следующая встреча✅\n\
+               В разделе актуальная встреча вы можете узнать задание на текущую неделю и напарника, с которым вы должны его выполнить🎉\n\
+               После того как вы получили задание, вы должны договориться с напарником о встречи и выполнить его в течение недели. Чтобы подтвердить участие нужно прислать фотоотчет в чаты львят или Live с хэштегом #на_одной_волне☀️\n\
+               В разделе статистика вы можете просмотреть информацию о встречах и об участниках с кем вы встретились🥰"
+    },
+    profile: Profile {
+        re_register_button: "Изменить данные",
     },
     admin_menu: AdminMenu {
         text: "Меню администратора",
         users_button: "Пользователи",
         meetings_button: "Встречи",
-        users_query_header: "Все пользователи бота",
-        user_not_found: "Пользователь не найден :(",
-        meetings_text: "Админ-панель встреч",
-        meetings_quests_button: "Задания",
-        meetings_assign_button: "Назначить пары",
-        meetings_verify_button: "Верифицировать",
-        meetings_statistics_button: "Статистика",
-        meetings_promote_button: "Обновить задания",
-        quests_create_next_button: "Создать следующее",
-        quests_create_next_text: "Введите описание задания",
-        quests_create_next_success: "Успешно создано!",
-    }
+        assign_partner_button: "Партнёры",
+        verification_button: "Подтверждения",
+    },
+    admin_users: AdminUsers {
+        text: "Вот список всех пользователей бота",
+        no_users: "Список пользователей пуст... странно, но надеюсь у программистов был бэкап)",
+    },
+    admin_assign: AdminAssign {
+        insufficient_users: "Недостаточно пользователей, подтвердивших встречу, для назначения пар",
+        assign_first: "Выберите первого пользователя пары",
+        assign_second: "Выберите второго пользователя пары",
+        assign_success: "Пара успешно назначена",
+    },
 };

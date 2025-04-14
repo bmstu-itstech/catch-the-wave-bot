@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::domain::error::DomainError;
 use crate::domain::interfaces::UserRepository;
-use crate::domain::models::{CurrentMeeting, CurrentMeetingState, Profile, User};
+use crate::domain::models::{Profile, User};
 
 
 #[derive(Clone)]
@@ -22,12 +22,8 @@ impl CompleteRegistrationUseCase {
         group_name: &str,
     ) -> Result<User, DomainError> {
         let profile = Profile::new(full_name, group_name);
-        let mut user = self.user_repo.user(user_id).await?;
+        let mut user = self.user_repo.user(user_id.into()).await?;
         user.set_profile(profile);
-        user.current_meeting = Some(CurrentMeeting {
-            state: CurrentMeetingState::Active,
-            partner_id: 1,
-        });
         self.user_repo.update(&user).await?;
         Ok(user)
     }

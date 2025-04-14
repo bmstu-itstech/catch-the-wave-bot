@@ -1,11 +1,11 @@
 mod user;
 mod profile;
-mod quest;
-mod next_meeting;
-mod current_meeting;
+mod user_task;
+mod week;
+mod task;
 
 pub use user::*;
 pub use profile::*;
-pub use quest::*;
-pub use next_meeting::*;
-pub use current_meeting::*;
+pub use user_task::*;
+pub use week::*;
+pub use task::*;

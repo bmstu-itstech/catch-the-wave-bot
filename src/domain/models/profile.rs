@@ -1,9 +1,7 @@
-#[derive(Debug)]
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Profile {
-    pub full_name: String,
-    pub group_name: String,
+    full_name: String,
+    group_name: String,
 }
 
 impl Profile {
@@ -12,5 +10,13 @@ impl Profile {
             full_name: full_name.into(), 
             group_name: group_name.into(),
         }
+    }
+    
+    pub fn full_name(&self) -> &str {
+        &self.full_name
+    }
+    
+    pub fn group_name(&self) -> &str {
+        &self.group_name
     }
 }

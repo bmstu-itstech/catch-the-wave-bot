@@ -3,20 +3,20 @@ use std::sync::RwLock;
 
 use crate::domain::error::DomainError;
 use crate::domain::interfaces::UserRepository;
-use crate::domain::models::User;
+use crate::domain::models::{User, UserId};
 
 #[derive(Default)]
 pub struct InMemoryUserRepository {
-    m: RwLock<HashMap<i64, User>>,
+    m: RwLock<HashMap<UserId, User>>,
 }
 
 #[async_trait::async_trait]
 impl UserRepository for InMemoryUserRepository {
     async fn save(&self, user: &User) -> Result<(), DomainError> {
         let mut guard = self.m.write().unwrap();
-        let prev = guard.insert(user.id, user.clone());
+        let prev = guard.insert(user.id(), user.clone());
         if prev.is_some() {
-            Err(DomainError::UserAlreadyExists(user.id))
+            Err(DomainError::UserAlreadyExists(user.id()))
         } else {
             Ok(())
         }
@@ -24,22 +24,31 @@ impl UserRepository for InMemoryUserRepository {
 
     async fn update(&self, user: &User) -> Result<(), DomainError> {
         let mut guard = self.m.write().unwrap();
-        guard.insert(user.id, user.clone());
+        guard.insert(user.id(), user.clone());
         Ok(())
     }
 
-    async fn user(&self, id: i64) -> Result<User, DomainError> {
+    async fn user(&self, id: UserId) -> Result<User, DomainError> {
+        Ok(self.find_user(id).await?.ok_or(DomainError::UserNotFound(id))?)
+    }
+    
+    async fn find_user(&self, id: UserId) -> Result<Option<User>, DomainError> {
         let guard = self.m.read().unwrap();
-        let user = guard.get(&id);
-        if let Some(user) = user {
-            Ok(user.clone())
-        } else {
-            Err(DomainError::UserNotFound(id))       
-        }
+        Ok(guard.get(&id).cloned())
     }
 
     async fn all(&self) -> Result<Vec<User>, DomainError> {
         let guard = self.m.read().unwrap();
         Ok(guard.values().cloned().collect())
+    }
+    
+    async fn free_users(&self) -> Result<Vec<User>, DomainError> {
+        let guard = self.m.read().unwrap();
+        Ok(guard
+            .values()
+            .filter(|&user| user.is_free())
+            .map(|user| user.clone())
+            .collect()
+        )
     }
 }

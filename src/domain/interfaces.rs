@@ -1,5 +1,5 @@
 use crate::domain::error::DomainError;
-use crate::domain::models::{Quest, User};
+use crate::domain::models::{Task, TaskId, User, UserId, WeekId};
 
 
 #[async_trait::async_trait]
@@ -8,23 +8,30 @@ pub trait UserRepository: Send + Sync {
     
     async fn update(&self, user: &User) -> Result<(), DomainError>;
     
-    async fn user(&self, id: i64) -> Result<User, DomainError>;
+    async fn user(&self, id: UserId) -> Result<User, DomainError>;
+    
+    async fn find_user(&self, id: UserId) -> Result<Option<User>, DomainError>;
     
     async fn all(&self) -> Result<Vec<User>, DomainError>;
+    
+    async fn free_users(&self) -> Result<Vec<User>, DomainError>;
 }
 
 
 #[async_trait::async_trait]
 pub trait AuthService: Send + Sync {
-    async fn is_admin(&self, user_id: i64) -> Result<bool, DomainError>;
+    async fn is_admin(&self, user_id: UserId) -> Result<bool, DomainError>;
 }
 
-
 #[async_trait::async_trait]
-pub trait QuestRepository: Send + Sync {
-    async fn create(&self, text: &str) -> Result<Quest, DomainError>;
+pub trait TaskRepository: Send + Sync {
+    async fn save(&self, task: &Task) -> Result<(), DomainError>;
     
-    async fn quest(&self, id: i64) -> Result<Quest, DomainError>;
+    async fn task(&self, id: TaskId) -> Result<Task, DomainError>;
+}
+
+pub trait WeekService: Send + Sync {
+    fn current(&self) -> WeekId;
     
-    async fn next_quest_id(&self, id: i64) -> Result<Option<i64>, DomainError>;
+    fn next(&self, week_id: WeekId) -> WeekId;
 }

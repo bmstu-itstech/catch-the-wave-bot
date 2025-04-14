@@ -13,4 +13,8 @@ pub enum CwDialogueState {
     AwaitingAcceptNextMeeting,
     
     AwaitingQuestText,
+    
+    AwaitingUser,
+    AwaitingPartner1,
+    AwaitingPartner2 { partner_1_id: i64 },
 }
