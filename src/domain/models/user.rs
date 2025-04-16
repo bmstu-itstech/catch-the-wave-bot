@@ -17,6 +17,7 @@ pub enum NextTaskStatus {
 pub struct UserId(pub i64);
 
 #[derive(Default, Debug, Clone)]
+#[derive(PartialEq)]
 pub struct User {
     id: UserId,
     username: String,
@@ -81,7 +82,7 @@ impl User {
         Ok(())
     }
     
-    pub fn is_free(&self) -> bool {
+    pub fn is_ready(&self) -> bool {
         self.next_task_status == NextTaskStatus::Accepted
     }
 
@@ -116,7 +117,7 @@ impl User {
         self.next_task_status
     }
     
-    pub fn completed_quests(&self) -> i32 {
+    pub fn completed_tasks(&self) -> i32 {
         self.completed_tasks
     }
 }
@@ -124,6 +125,12 @@ impl User {
 impl Into<UserId> for i64 {
     fn into(self) -> UserId {
         UserId(self)
+    }
+}
+
+impl Into<i64> for UserId {
+    fn into(self) -> i64 {
+        self.0
     }
 }
 

@@ -65,7 +65,7 @@ impl FullUserDto {
                 NextTaskStatus::Accepted => String::from("подтверждено"),
                 NextTaskStatus::Rejected => String::from("отказано"),
             },
-            completed_quests: user.completed_quests(),
+            completed_quests: user.completed_tasks(),
         })
     }
     
@@ -83,7 +83,7 @@ impl FullUserDto {
                 NextTaskStatus::Accepted => String::from("подтверждено"),
                 NextTaskStatus::Rejected => String::from("отказано"),
             },
-            completed_quests: user.completed_quests(),
+            completed_quests: user.completed_tasks(),
         })
     }
 }

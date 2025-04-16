@@ -7,7 +7,7 @@ pub enum UserTaskState {
     Completed,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UserTask {
     task_id: TaskId,
     partner_id: UserId,

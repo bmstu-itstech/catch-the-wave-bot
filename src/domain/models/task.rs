@@ -2,7 +2,7 @@ use crate::domain::models::WeekId;
 
 pub type TaskId = WeekId;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Task {
     id: TaskId,
     title: String,

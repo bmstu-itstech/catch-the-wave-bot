@@ -42,11 +42,11 @@ impl UserRepository for InMemoryUserRepository {
         Ok(guard.values().cloned().collect())
     }
     
-    async fn free_users(&self) -> Result<Vec<User>, DomainError> {
+    async fn ready_users(&self) -> Result<Vec<User>, DomainError> {
         let guard = self.m.read().unwrap();
         Ok(guard
             .values()
-            .filter(|&user| user.is_free())
+            .filter(|&user| user.is_ready())
             .map(|user| user.clone())
             .collect()
         )

@@ -17,7 +17,7 @@ impl GetFreeUsersUseCase {
 
     pub async fn execute(&self) -> Result<Vec<UserDto>, DomainError> {
         Ok(self.user_repo
-            .free_users().await?
+            .ready_users().await?
             .into_iter()
             .map(UserDto::from)
             .collect())

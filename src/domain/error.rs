@@ -5,6 +5,9 @@ pub type StdError = Box<dyn std::error::Error + Send + Sync>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum DomainError {
+    #[error("invalid value: {0}")]
+    InvalidValue(String),
+    
     #[error("user {0} not found")]
     UserNotFound(UserId),
     
@@ -13,6 +16,9 @@ pub enum DomainError {
     
     #[error("user {0} already exists")]
     UserAlreadyExists(UserId),
+
+    #[error("task {0} already exists")]
+    TaskAlreadyExists(TaskId),
     
     #[error("invalid status change: {0}")]
     InvalidStateChange(String),

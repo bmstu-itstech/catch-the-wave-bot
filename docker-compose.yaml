@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:15.3-alpine3.18
+    container_name: cw-db
+    command: postgres
+    ports:
+      - "${POSTGRES_PORT_EXT}:5432"
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB" ]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+    networks:
+      web-cw:
+        aliases:
+          - db
+
+  migrate:
+    image: migrate/migrate
+    container_name: cw-migrate
+    networks:
+      - web-cw
+    volumes:
+      - ./migrations:/migrations
+    env_file:
+      - .env
+    command: [ "-path", "/migrations", "-database", "$DATABASE_URI", "up" ]
+    depends_on:
+      db:
+        condition: service_healthy
+
+networks:
+  web-cw:
+    driver: bridge

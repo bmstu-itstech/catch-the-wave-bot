@@ -14,7 +14,7 @@ pub trait UserRepository: Send + Sync {
     
     async fn all(&self) -> Result<Vec<User>, DomainError>;
     
-    async fn free_users(&self) -> Result<Vec<User>, DomainError>;
+    async fn ready_users(&self) -> Result<Vec<User>, DomainError>;
 }
 
 

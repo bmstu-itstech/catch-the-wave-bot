@@ -1,3 +1,4 @@
+use std::env;
 use std::sync::Arc;
 use teloxide::prelude::*;
 
@@ -7,24 +8,14 @@ use crate::domain::models::{Profile, User};
 
 use crate::domain::use_cases::*;
 use crate::services::*;
+use crate::utils::postgres::pool;
 
 mod domain;
 mod services;
 mod presentation;
 mod dispatcher;
+mod utils;
 
-
-fn user_from_num(i: i32) -> User {
-    let mut user = User::new(
-        i as i64,
-        format!("user_{i}")
-    );
-    user.set_profile(Profile::new(
-        format!("User{i}"),
-        format!("TT-1{i}"),
-    ));
-    user
-}
 
 #[tokio::main]
 async fn main() {
@@ -33,8 +24,13 @@ async fn main() {
     pretty_env_logger::init();
     log::info!("Starting bot...");
 
-    let user_repo = Arc::new(InMemoryUserRepository::default());
-    let task_repo = Arc::new(InMemoryTaskRepository::default());
+    let uri = env::var("DATABASE_URI")
+        .expect("DATABASE_URI must be set");
+    let pool = pool::connect(&uri)
+        .expect(format!("unable to connect to database: {}", uri).as_str());
+    
+    let user_repo = Arc::new(PostgresUserRepository::new(pool.clone()));
+    let task_repo = Arc::new(PostgresTaskRepository::new(pool.clone()));
     let auth_service = Arc::new(MockAuthService::with_admin_ids(vec![1723307580]));
     let week_service = Arc::new(ChronoWeekService::default());
 
@@ -51,19 +47,6 @@ async fn main() {
     let assign_partner_use_case = AssignPartnerUseCase::new(user_repo.clone(), task_repo.clone(), week_service.clone());
     let check_next_task_use_case = CheckNextTaskUseCase::new(task_repo.clone(), week_service.clone());
     let create_next_task_use_case = CreateNextTaskUseCase::new(task_repo.clone(), week_service.clone());
-    
-    let mut user1 = User::new(1, "testuser");
-    user1.set_profile(Profile::new("Иванов Иван Иванович", "СМ13-13Б"));
-    user1.accept()
-        .expect("failed to accept next task");
-    user_repo.save(&user1).await
-        .expect("failed to save user");
-    
-    for i in 2..30 {
-        let user = user_from_num(i);
-        user_repo.save(&user).await
-            .expect("failed to save user");
-    }
     
     log::info!("Starting bot...");
     
