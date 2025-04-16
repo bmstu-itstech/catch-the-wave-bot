@@ -1,4 +1,5 @@
 use teloxide::prelude::*;
+use teloxide::types::MaybeInaccessibleMessage;
 
 use crate::domain::use_cases::{AssignPartnerUseCase, CheckNextTaskUseCase, GetFreeUsersUseCase};
 use crate::presentation::handlers::fsm::CwDialogueState;
@@ -51,6 +52,7 @@ pub async fn handle_admin_menu_assign_partner_1_callback(
     use_case: GetFreeUsersUseCase,
 ) -> CwHandlerResult {
     bot.answer_callback_query(&q.id).await?;
+    delete_callback_message(&bot, &q).await?;
 
     let partner_1_id: i64 = q.data.as_ref().unwrap()
         .split(":").last().unwrap()
@@ -79,6 +81,7 @@ pub async fn handle_admin_menu_assign_partner_2_callback(
     partner_1_id: i64,
 ) -> CwHandlerResult {
     bot.answer_callback_query(&q.id).await?;
+    delete_callback_message(&bot, &q).await?;
 
     let partner_2_id: i64 = q.data.as_ref().unwrap()
         .split(":").last().unwrap()
@@ -93,5 +96,15 @@ pub async fn handle_admin_menu_assign_partner_2_callback(
     bot.send_message(dialogue.chat_id(), T.admin_assign.assign_success)
         .await?;
     
+    Ok(())
+}
+
+async fn delete_callback_message(
+    bot: &Bot,
+    q: &CallbackQuery,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    if let Some(MaybeInaccessibleMessage::Regular(msg)) = &q.message {
+        bot.delete_message(msg.chat.id, msg.id).await?;
+    }
     Ok(())
 }
