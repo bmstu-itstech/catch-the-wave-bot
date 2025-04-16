@@ -18,3 +18,5 @@ target/
 
 # Secrets files
 /.env
+/.env.docker
+

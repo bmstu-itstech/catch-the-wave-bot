@@ -3,9 +3,6 @@ use std::sync::Arc;
 use teloxide::prelude::*;
 
 use crate::dispatcher::CwDispatcher;
-use crate::domain::interfaces::UserRepository;
-use crate::domain::models::{Profile, User};
-
 use crate::domain::use_cases::*;
 use crate::services::*;
 use crate::utils::postgres::pool;
@@ -19,19 +16,25 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
-    dotenv::dotenv().ok();
-
     pretty_env_logger::init();
-    log::info!("Starting bot...");
-
+    
     let uri = env::var("DATABASE_URI")
         .expect("DATABASE_URI must be set");
     let pool = pool::connect(&uri)
         .expect(format!("unable to connect to database: {}", uri).as_str());
-    
+    log::info!("Connected to PostgreSQL database: {}", uri);
+
+    let admin_ids_str = env::var("ADMIN_IDS")
+        .expect("ADMIN_IDS must be set");
+
+    let admin_ids: Vec<i64> = admin_ids_str
+        .split(',')
+        .map(|s| s.trim().parse().expect("invalid admin ID format"))
+        .collect();
+
     let user_repo = Arc::new(PostgresUserRepository::new(pool.clone()));
     let task_repo = Arc::new(PostgresTaskRepository::new(pool.clone()));
-    let auth_service = Arc::new(MockAuthService::with_admin_ids(vec![1723307580]));
+    let auth_service = Arc::new(MockAuthService::with_admin_ids(admin_ids));
     let week_service = Arc::new(ChronoWeekService::default());
 
     let start_registration_use_case = StartRegistrationUseCase::new(user_repo.clone());
