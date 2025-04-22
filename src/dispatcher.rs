@@ -25,10 +25,12 @@ impl CwDispatcher {
         check_admin_use_case: CheckAdminUseCase,
         get_all_users_use_case: GetAllUsersUseCase,
         get_user_use_case: GetUserUseCase,
-        get_free_users_use_case: GetFreeUsersUseCase,
+        get_free_users_use_case: GetReadyUsersUseCase,
         assign_partner_use_case: AssignPartnerUseCase,
         check_next_task_use_case: CheckNextTaskUseCase,
         create_next_task_use_case: CreateNextTaskUseCase,
+        get_active_users_use_case: GetActiveUsersUseCase,
+        complete_task_use_case: CompleteTaskUseCase,
     ) -> Dispatcher<Bot, CwBotError, DefaultKey> {
         Dispatcher::builder(bot, Self::schema())
             .dependencies(dptree::deps![
@@ -45,6 +47,8 @@ impl CwDispatcher {
                 assign_partner_use_case,
                 check_next_task_use_case,
                 create_next_task_use_case,
+                get_active_users_use_case,
+                complete_task_use_case,
                 InMemStorage::<CwDialogueState>::new()
             ])
             .default_handler(|upd| async move {
@@ -127,6 +131,10 @@ impl CwDispatcher {
                         case![admin::MenuCallback::CreateNextTask]
                             .endpoint(admin::handle_admin_menu_create_next_task)
                     )
+                    .branch(
+                        case![admin::MenuCallback::Complete]
+                            .endpoint(admin::handle_admin_menu_complete_callback)
+                    )
             )
             .branch(
                 dptree::entry()
@@ -144,6 +152,10 @@ impl CwDispatcher {
                             .branch(
                                 case![CwDialogueState::AwaitingPartner2 { partner_1_id } ]
                                     .endpoint(admin::handle_admin_menu_assign_partner_2_callback)
+                            )
+                            .branch(
+                                case![CwDialogueState::AwaitingUserForComplete]
+                                    .endpoint(admin::handle_admin_menu_complete_user_callback)
                             )
                     )
             )

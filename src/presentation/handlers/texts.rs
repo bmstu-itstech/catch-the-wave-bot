@@ -137,6 +137,12 @@ pub struct AdminCreateTask {
     pub already_exists: StaticText,
 }
 
+pub struct AdminCompleteTask {
+    pub text: StaticText,
+    pub no_users: StaticText,
+    pub success: StaticText,
+}
+
 pub struct Texts {
     pub registration: RegistrationTexts,
     pub menu: Menu,
@@ -148,6 +154,7 @@ pub struct Texts {
     pub admin_users: AdminUsers,
     pub admin_assign: AdminAssign,
     pub admin_create_task: AdminCreateTask,
+    pub admin_complete_task: AdminCompleteTask,
 }
 
 pub const T: Texts = Texts {
@@ -206,5 +213,10 @@ pub const T: Texts = Texts {
         enter_description: "Введите текст задания",
         success: "Задание на следующую неделю успешно создано",
         already_exists: "Задание на следующую неделю уже существует. Дождитесь начала новой недели для создания следующего",
+    },
+    admin_complete_task: AdminCompleteTask {
+        text: "Выберите пользователя из списка для подтверждения выполнения задания",   
+        no_users: "Нет ни одного пользователя с активным текущим заданием. Необходимо сначала создать пару для выполнения задания",
+        success: "Задание успешно засчитано",
     }
 };

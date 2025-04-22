@@ -51,4 +51,14 @@ impl UserRepository for InMemoryUserRepository {
             .collect()
         )
     }
+
+    async fn active_users(&self) -> Result<Vec<User>, DomainError> {
+        let guard = self.m.read().unwrap();
+        Ok(guard
+            .values()
+            .filter(|&user| user.is_ready())
+            .map(|user| user.clone())
+            .collect()
+        )
+    }
 }

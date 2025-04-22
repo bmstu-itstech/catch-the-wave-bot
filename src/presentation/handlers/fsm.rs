@@ -18,4 +18,6 @@ pub enum CwDialogueState {
     
     AwaitingTaskTitle,
     AwaitingTaskDescription { title: String },
+
+    AwaitingUserForComplete,
 }

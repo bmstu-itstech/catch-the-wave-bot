@@ -30,17 +30,19 @@ pub enum MenuCallback {
     Users,
     CreateNextTask,
     AssignPartner,
+    Complete,
 }
 
 pub fn build_admin_menu_keyboard() -> InlineKeyboardMarkup {
     InlineKeyboardMarkup::new(vec![
         vec![
             MenuCallback::CreateNextTask.into(),
+            MenuCallback::AssignPartner.into(),
         ],
         vec![
-            MenuCallback::AssignPartner.into(),
+            MenuCallback::Complete.into(),
             MenuCallback::Users.into(),
-        ],
+        ]
     ])
 }
 
@@ -56,9 +58,9 @@ impl Into<InlineKeyboardButton> for MenuCallback {
             MenuCallback::AssignPartner => InlineKeyboardButton::callback(
                 T.admin_menu.assign_partner_button, MenuCallback::AssignPartner,
             ),
-            /*AdminMenuCallback::Verify => InlineKeyboardButton::callback(
-                T.admin_menu.verification_button, AdminMenuCallback::Verify,
-            ),*/
+            MenuCallback::Complete => InlineKeyboardButton::callback(
+                T.admin_menu.verification_button, MenuCallback::Complete,
+            ),
         }
     }
 }
@@ -66,10 +68,10 @@ impl Into<InlineKeyboardButton> for MenuCallback {
 impl Into<String> for MenuCallback {
     fn into(self) -> String {
         match self {
-            MenuCallback::Users => "admin_menu_users".to_string(),
+            MenuCallback::Users          => "admin_menu_users".to_string(),
             MenuCallback::CreateNextTask => "admin_menu_create_next_task".to_string(),
-            MenuCallback::AssignPartner => "admin_menu_assign_partner".to_string(),
-            //AdminMenuCallback::Verify => "admin_menu_verify".to_string(),
+            MenuCallback::AssignPartner  => "admin_menu_assign_partner".to_string(),
+            MenuCallback::Complete       => "admin_menu_complete".to_string(),
         }
     }
 }
@@ -79,10 +81,10 @@ impl TryFrom<String> for MenuCallback {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
-            "admin_menu_users" => Ok(MenuCallback::Users),
+            "admin_menu_users"            => Ok(MenuCallback::Users),
             "admin_menu_create_next_task" => Ok(MenuCallback::CreateNextTask),
-            "admin_menu_assign_partner" => Ok(MenuCallback::AssignPartner),
-            //"admin_menu_verify" => Ok(AdminMenuCallback::Verify),
+            "admin_menu_assign_partner"   => Ok(MenuCallback::AssignPartner),
+            "admin_menu_complete"         => Ok(MenuCallback::Complete),
             _ => Err(()),
         }
     }

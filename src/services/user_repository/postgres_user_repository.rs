@@ -1,4 +1,4 @@
-use deadpool_postgres::{Client, Pool};
+use deadpool_postgres::{Client, GenericClient, Pool};
 use tokio_postgres::Row;
 use postgres_types::{FromSql, ToSql};
 
@@ -254,6 +254,48 @@ impl UserRepository for PostgresUserRepository {
 
     async fn ready_users(&self) -> Result<Vec<User>, DomainError> {
         self.fetch_users(Some("next_task_status = 'accepted'")).await
+    }
+    
+    async fn active_users(&self) -> Result<Vec<User>, DomainError> {
+        let client = self.pool
+            .get()
+            .await
+            .map_err(|err| DomainError::Other(err.into()))?;
+
+        let rows = client
+            .query(
+                r#"
+                SELECT
+                    id,
+                    username,
+                    full_name,
+                    group_name,
+                    next_task_status,
+                    completed_tasks,
+                    user_id,
+                    task_year,
+                    task_week,
+                    partner_id,
+                    state
+                FROM users
+                RIGHT JOIN user_tasks t ON t.user_id = users.id
+                WHERE state = 'active'
+                "#,
+                &[],
+            )
+                .await
+                .map_err(|err| DomainError::Other(err.into()))?;
+        
+        let users: Vec<_> = rows
+            .into_iter()
+            .map(|row| {
+                let user_model: UserModel = row.clone().into();
+                let user_task_model: UserTaskModel = row.into();
+                (user_model, Some(user_task_model)).into()
+            })
+            .collect();
+        
+        Ok(users)
     }
 }
 

@@ -27,6 +27,8 @@ services:
       web-cw:
         aliases:
           - db
+    volumes:
+      - ${POSTGRES_VOLUME:-./.pgdata}:/var/lib/postgresql/data
 
   migrate:
     image: migrate/migrate

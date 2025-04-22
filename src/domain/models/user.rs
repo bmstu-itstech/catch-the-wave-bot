@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::domain::error::DomainError;
 use crate::domain::models::profile::Profile;
-use crate::domain::models::{UserTask, WeekId};
+use crate::domain::models::{UserTask, UserTaskState, WeekId};
 
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
@@ -79,11 +79,18 @@ impl User {
     pub fn complete_task(&mut self) -> Result<(), DomainError> {
         let user_task = self.user_task.as_mut().ok_or(DomainError::NoUserTask)?;
         user_task.complete()?;
+        self.completed_tasks += 1;
         Ok(())
     }
     
     pub fn is_ready(&self) -> bool {
         self.next_task_status == NextTaskStatus::Accepted
+    }
+    
+    pub fn in_progress(&self) -> bool {
+        self.user_task
+            .as_ref()
+            .is_some_and(|ut| *ut.state() == UserTaskState::Active)
     }
 
     pub fn restore(
@@ -112,7 +119,11 @@ impl User {
     pub fn user_task(&self) -> Option<&UserTask> {
         self.user_task.as_ref()
     }
-    
+
+    pub fn user_task_mut(&mut self) -> Option<&mut UserTask> {
+        self.user_task.as_mut()
+    }
+
     pub fn next_task_status(&self) -> NextTaskStatus {
         self.next_task_status
     }

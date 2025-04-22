@@ -1,7 +1,7 @@
 use teloxide::prelude::*;
 use teloxide::types::MaybeInaccessibleMessage;
 
-use crate::domain::use_cases::{AssignPartnerUseCase, CheckNextTaskUseCase, GetFreeUsersUseCase};
+use crate::domain::use_cases::{AssignPartnerUseCase, CheckNextTaskUseCase, GetReadyUsersUseCase};
 use crate::presentation::handlers::fsm::CwDialogueState;
 use crate::presentation::handlers::texts::T;
 use crate::presentation::handlers::utils::{CwBotError, CwDialogue, CwHandlerResult};
@@ -13,7 +13,7 @@ pub async fn handle_admin_menu_assign_partner_callback(
     bot: Bot,
     q: CallbackQuery,
     dialogue: CwDialogue,
-    get_free_users_use_case: GetFreeUsersUseCase,
+    get_free_users_use_case: GetReadyUsersUseCase,
     check_next_task_use_case: CheckNextTaskUseCase,
 ) -> CwHandlerResult {
     bot.answer_callback_query(&q.id).await?;
@@ -49,7 +49,7 @@ pub async fn handle_admin_menu_assign_partner_1_callback(
     bot: Bot,
     q: CallbackQuery,
     dialogue: CwDialogue,
-    use_case: GetFreeUsersUseCase,
+    use_case: GetReadyUsersUseCase,
 ) -> CwHandlerResult {
     bot.answer_callback_query(&q.id).await?;
     delete_callback_message(&bot, &q).await?;
@@ -99,7 +99,7 @@ pub async fn handle_admin_menu_assign_partner_2_callback(
     Ok(())
 }
 
-async fn delete_callback_message(
+pub async fn delete_callback_message(
     bot: &Bot,
     q: &CallbackQuery,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

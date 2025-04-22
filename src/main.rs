@@ -1,5 +1,6 @@
 use std::env;
 use std::sync::Arc;
+use dotenv::dotenv;
 use teloxide::prelude::*;
 
 use crate::dispatcher::CwDispatcher;
@@ -16,6 +17,7 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
     pretty_env_logger::init();
     
     let uri = env::var("DATABASE_URI")
@@ -46,10 +48,12 @@ async fn main() {
     let check_admin_use_case = CheckAdminUseCase::new(auth_service.clone());
     let get_all_users_use_case = GetAllUsersUseCase::new(user_repo.clone());
     let get_user_use_case = GetUserUseCase::new(user_repo.clone(), task_repo.clone());
-    let get_free_users_use_case = GetFreeUsersUseCase::new(user_repo.clone());
+    let get_free_users_use_case = GetReadyUsersUseCase::new(user_repo.clone());
     let assign_partner_use_case = AssignPartnerUseCase::new(user_repo.clone(), task_repo.clone(), week_service.clone());
     let check_next_task_use_case = CheckNextTaskUseCase::new(task_repo.clone(), week_service.clone());
     let create_next_task_use_case = CreateNextTaskUseCase::new(task_repo.clone(), week_service.clone());
+    let get_active_users_use_case = GetActiveUsersUseCase::new(user_repo.clone());
+    let complete_task_use_case = CompleteTaskUseCase::new(user_repo.clone());
     
     log::info!("Starting bot...");
     
@@ -69,6 +73,8 @@ async fn main() {
         assign_partner_use_case,
         check_next_task_use_case,
         create_next_task_use_case,
+        get_active_users_use_case,
+        complete_task_use_case,
     ).await;
     dispatcher.dispatch().await;
 }
